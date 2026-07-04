@@ -1,19 +1,23 @@
-name: Auto Tag
+name: Tag Sync
 
 on:
   push:
     branches:
       - main
-      - master
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
+
+concurrency:
+  group: tag-sync-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   auto-tag:
     name: Create and Push Tags
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     outputs:
       new_tag: ${{ steps.version.outputs.found }}
       version: ${{ steps.version.outputs.version }}
@@ -123,16 +127,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Create or update main version tag
+          # Release tag is immutable: create it once, never move it afterwards.
           if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            # Check if tag already points to HEAD
             TAG_SHA=$(git rev-parse "$TAG_NAME")
             HEAD_SHA=$(git rev-parse HEAD)
             if [ "$TAG_SHA" = "$HEAD_SHA" ]; then
               echo "✓ [AUTO-TAG] Tag $TAG_NAME already points to HEAD, no update needed"
             else
-              git tag -f "$TAG_NAME"
-              echo "✓ [AUTO-TAG] Updated: $TAG_NAME"
+              echo "⚠️  [AUTO-TAG] Tag $TAG_NAME already exists and points elsewhere ($TAG_SHA)."
+              echo "⚠️  [AUTO-TAG] Refusing to move an immutable release tag. Bump the version to release a new tag."
+              exit 1
             fi
           else
             git tag "$TAG_NAME"
@@ -174,9 +178,9 @@ jobs:
           TAG_NAME="${{ steps.create_tags.outputs.tag_name }}"
           LATEST_TAG="${{ steps.create_tags.outputs.latest_tag }}"
 
-          # Push main version tag
-          if git push origin --force "$TAG_NAME" 2>&1; then
-            echo "✅ [AUTO-TAG] Tag pushed to remote with force: $TAG_NAME"
+          # Push main version tag (never force: it is immutable once created)
+          if git push origin "$TAG_NAME" 2>&1; then
+            echo "✅ [AUTO-TAG] Tag pushed to remote: $TAG_NAME"
           else
             echo "⚠️  [AUTO-TAG] Failed to push tag to remote: $TAG_NAME"
             exit 1
@@ -217,32 +221,19 @@ jobs:
   # ========================================
   # TRIGGER OTHER WORKFLOWS (reusable workflow calls)
   # ========================================
-  # Uncomment and configure the jobs below to trigger local workflows.
-  # Each job runs in parallel after auto-tag completes.
-  # The called workflows must define `on: workflow_call:` with matching inputs.
+  # This app is not published to a package registry (installer/TUF release is
+  # done locally via `build.py` — see tool.ezcompiler in pyproject.toml).
+  # Only the docs cascade applies here.
 
-  # trigger-build-artifact:
-  #   name: Trigger Publish
-  #   needs: auto-tag
-  #   if: needs.auto-tag.outputs.new_tag == 'true'
-  #   uses: ./.github/workflows/build-artifact.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.auto-tag.outputs.version }}
-  #     tag: ${{ needs.auto-tag.outputs.tag_name }}
-  #     package_name: ${{ needs.auto-tag.outputs.package_name }}
-  #     python_version: ${{ needs.auto-tag.outputs.python_version }}
-  #     is_prerelease: ${{ needs.auto-tag.outputs.is_prerelease }}
-
-  # trigger-deploy-docs:
-  #   name: Trigger Deploy Docs
-  #   needs: auto-tag
-  #   if: needs.auto-tag.outputs.new_tag == 'true'
-  #   uses: ./.github/workflows/docs.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.auto-tag.outputs.version }}
-  #     tag: ${{ needs.auto-tag.outputs.tag_name }}
-  #     package_name: ${{ needs.auto-tag.outputs.package_name }}
-  #     python_version: ${{ needs.auto-tag.outputs.python_version }}
-  #     is_prerelease: ${{ needs.auto-tag.outputs.is_prerelease }}
+  trigger-deploy-docs:
+    name: Trigger Deploy Docs
+    needs: auto-tag
+    if: needs.auto-tag.outputs.new_tag == 'true'
+    uses: ./.github/workflows/03-docs.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.auto-tag.outputs.version }}
+      tag: ${{ needs.auto-tag.outputs.tag_name }}
+      package_name: ${{ needs.auto-tag.outputs.package_name }}
+      python_version: ${{ needs.auto-tag.outputs.python_version }}
+      is_prerelease: ${{ needs.auto-tag.outputs.is_prerelease }}
