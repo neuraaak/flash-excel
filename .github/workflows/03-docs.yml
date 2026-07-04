@@ -21,8 +21,11 @@ on:
         type: string
         default: "false"
 
-permissions:
-  contents: write
+permissions: {}
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
 
 env:
   PACKAGE_NAME: ${{ inputs.package_name }}
@@ -34,7 +37,9 @@ env:
 jobs:
   deploy:
     name: Build and Deploy Docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -62,7 +67,7 @@ jobs:
       - name: Generate coverage report
         run: |
           echo "🧪 Running tests and generating coverage report..."
-          uv run pytest --cov=src/ --cov-report=html --cov-report=xml -q || true
+          uv run pytest --cov=src/ --cov-report=html --cov-report=xml -q
           echo "✅ Coverage report generated!"
 
       - name: Enforce import contracts

@@ -40,4 +40,9 @@ export const api = {
   getAppConfig:   ()                 => call('get_app_config'),
   saveAppConfig:  (palette, mode, locale = 'en') => call('save_app_config', palette, mode, locale),
   getThemes:      ()                 => call('get_themes'),
+
+  // Version & auto-update
+  getVersion:   ()                   => call('get_version'),
+  checkUpdate:  ()                   => call('check_update'),
+  applyUpdate:  ()                   => call('apply_update'),
 };

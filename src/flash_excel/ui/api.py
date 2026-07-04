@@ -11,9 +11,14 @@ Return convention: always return a dict with:
 
 from __future__ import annotations
 
+import contextlib
 import json
+import os
+import sys
+import tempfile
 import threading
 import time
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +26,7 @@ import webview  # type: ignore[import-untyped]
 from pydantic import TypeAdapter
 from webview import FileDialog  # type: ignore[import-untyped]  # noqa: F401
 
+from flash_excel._version import __version__
 from flash_excel.config import load_app_config, load_themes, save_app_config
 from flash_excel.core.models import Preset, PresetMeta, Step
 from flash_excel.io.loader import read_schema
@@ -29,6 +35,23 @@ from flash_excel.paths import PRESETS_DIR
 from flash_excel.presets import delete_preset, list_presets, load_preset, save_preset
 
 _step_adapter: TypeAdapter[Step] = TypeAdapter(Step)
+
+
+_UPDATE_LOG = Path(tempfile.gettempdir()) / "flash-excel-update.log"
+
+
+def _update_log(msg: str) -> None:
+    """Append a timestamped line to the updater log (temp dir, always writable).
+
+    Windowed builds run with console=false, so exceptions on the update path
+    would otherwise be invisible. This gives a durable trace to inspect.
+    """
+    try:
+        line = f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n"
+        with _UPDATE_LOG.open("a", encoding="utf-8") as fh:
+            fh.write(line)
+    except Exception:  # noqa: BLE001, S110 - le log ne doit jamais casser l'app  # nosec B110
+        pass
 
 
 def _ok(data: Any = None) -> dict:
@@ -61,6 +84,79 @@ class FlashExcelAPI:
         """Relay a JS debug message to the Python console/log."""
         print(f"[flash-excel/js] {msg}")
         return _ok()
+
+    # ------------------------------------------------------------------
+    # Application version & auto-update (tufup)
+    # ------------------------------------------------------------------
+
+    def get_version(self) -> dict:
+        """Return the running application version."""
+        return _ok({"version": __version__})
+
+    def check_update(self) -> dict:
+        """Check the TUF repository for a newer version.
+
+        Returns ``{"available": bool, "version": str | None, "error": str | None}``.
+        Auto-update only works from the packaged app (the tufup client files are
+        bundled at build time), so in dev (non-frozen) this always reports no
+        update. A failed check (offline, signature error, non-writable cache) is
+        logged with a full traceback to ``flash-excel-update.log`` in the temp
+        dir and surfaced via the ``error`` field, but never raises.
+        """
+        if not getattr(sys, "frozen", False):
+            return _ok({"available": False, "version": None, "error": None})
+        try:
+            import update  # ty: ignore[unresolved-import]  # module généré au build, embarqué à la racine du bundle
+
+            latest = update.get_latest_version()
+            _update_log(f"check ok: current={__version__} latest={latest!r}")
+            return _ok(
+                {"available": latest is not None, "version": latest, "error": None}
+            )
+        except Exception as exc:  # noqa: BLE001 - un check échoué n'est pas fatal
+            _update_log(f"check FAILED: {exc!r}\n{traceback.format_exc()}")
+            return _ok({"available": False, "version": None, "error": str(exc)})
+
+    def apply_update(self) -> dict:
+        """Download and apply the available update via tufup, then quit.
+
+        tufup's Windows installer launches a robocopy script (non-blocking) and
+        then calls ``sys.exit(0)`` from *this* pywebview worker thread. That
+        raises ``SystemExit`` (which is NOT an ``Exception``) and only kills the
+        worker thread, leaving the process alive — so robocopy loops forever on
+        ERROR 32 because the running .exe/.pyd files are still locked. We catch
+        that ``SystemExit`` as the "installer launched" signal and force-quit
+        with ``os._exit(0)`` to release the locks. Returns ``{"applied": bool}``.
+        """
+        if not getattr(sys, "frozen", False):
+            return _err("Auto-update is only available in the packaged application")
+
+        def _force_quit() -> None:
+            # Laisse la réponse repartir vers le JS, ferme la fenêtre, puis
+            # termine brutalement le process pour libérer les fichiers
+            # verrouillés que le script robocopy de tufup doit remplacer.
+            time.sleep(0.3)
+            for window in webview.windows:
+                with contextlib.suppress(Exception):
+                    window.destroy()
+            os._exit(0)
+
+        try:
+            import update  # ty: ignore[unresolved-import]  # module généré au build, embarqué à la racine du bundle
+
+            # Retour normal = aucune maj appliquée (déjà à jour). Une maj
+            # effective ne revient jamais ici : tufup lève SystemExit après
+            # avoir lancé son script d'installation.
+            applied = update.check_and_apply(skip_confirmation=True)
+            _update_log(f"apply: no-op (applied={applied})")
+            return _ok({"applied": bool(applied)})
+        except SystemExit:
+            _update_log("apply: installer lancé (SystemExit) → force quit")
+            threading.Thread(target=_force_quit, daemon=True).start()
+            return _ok({"applied": True})
+        except Exception as exc:
+            _update_log(f"apply FAILED: {exc!r}\n{traceback.format_exc()}")
+            return _err(str(exc))
 
     # ------------------------------------------------------------------
     # Settings & themes
@@ -108,7 +204,7 @@ class FlashExcelAPI:
                             "path": str(p),
                         }
                     )
-                except Exception:  # noqa: S110
+                except Exception:  # noqa: S110  # nosec B110
                     pass
             return _ok(result)
         except Exception as exc:
@@ -203,7 +299,7 @@ class FlashExcelAPI:
                 if raw:
                     try:  # noqa: SIM105
                         steps.append(_step_adapter.validate_python(raw))
-                    except Exception:  # noqa: S110
+                    except Exception:  # noqa: S110  # nosec B110
                         pass
 
             preset = Preset(
