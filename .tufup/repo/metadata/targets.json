@@ -2,14 +2,27 @@
  "signatures": [
   {
    "keyid": "1ad86f04aeab27b0fa72ac0e9744efc449cd2cca56841e7bd531c5a992204eea",
-   "sig": "80e6dd52441e5193059b26749847f39010543e0935c664ef79335adf1eaed4ef7f74262859bd02726110f6a1bdb9773ddace17e64e15e43999a08920a199320b"
+   "sig": "e3fac740851414f4e650f399f6e486a682e885aed966713e03b8fbb854ecf6fabaf369b5609193bbca1c719edc8bdbd0ddbaf3430f8a1ded1a0dc8bb69066c04"
   }
  ],
  "signed": {
   "_type": "targets",
-  "expires": "2027-07-04T13:45:19Z",
+  "expires": "2027-07-04T14:54:59Z",
   "spec_version": "1.0.31",
-  "targets": {},
-  "version": 1
+  "targets": {
+   "flash-excel-1.2.0.tar.gz": {
+    "custom": {
+     "tufup": {
+      "required": false
+     },
+     "user": null
+    },
+    "hashes": {
+     "sha256": "0e4e0dcf52eb02a1091137efe6dd50c1df74dca4f4b1c9c88bee3f37fb9d3f57"
+    },
+    "length": 93683575
+   }
+  },
+  "version": 2
  }
 }
