@@ -7,9 +7,6 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
 # /////////////////////////////////////////////////////////////////////
 # 📦 PROJECT METADATA
 # Package information, version, authors, and classifiers
@@ -17,11 +14,11 @@ allow-direct-references = true
 
 [project]
 name = "flash-excel"
-version = "1.1.0"
-description = "A short description of flash-excel"
+version = "1.2.0"
+description = "Utilitaire desktop pour transformer des fichiers Excel/CSV via des presets déclaratifs."
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 authors = [{ name = "Neuraaak" }]
 maintainers = [{ name = "Neuraaak" }]
 keywords = []
@@ -32,7 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Operating System :: Microsoft :: Windows",
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Software Development :: Build Tools",
@@ -47,7 +44,6 @@ classifiers = [
 dependencies = [
     "pywebview>=5.0.0",
     "ezplog>=1.5.0",
-    "tufup>=0.9.0",
     "fastexcel>=0.11.0",
     "polars>=1.0.0",
     "pydantic>=2.0.0",
@@ -82,7 +78,7 @@ dev = [
     # Build and distribution
     "build>=1.0.0",
     "twine>=4.0.0",
-    "ezcompiler[pyinstaller]>=2.3.0",
+    "ezcompiler[pyinstaller,tufup,r2]>=3.4.0",
 ]
 test = [
     "pytest>=7.0.0",
@@ -127,42 +123,73 @@ PyPI = "https://pypi.org/project/flash-excel/"
 # ezcompiler settings for building and distributing the application
 # /////////////////////////////////////////////////////////////////////
 
+# Schéma ezcompiler ≥ 3.4.0 : sections imbriquées (compilation / advanced /
+# upload / release / installer + section par compilateur).
+# [project] fournit automatiquement project_name, version, description, author.
 [tool.ezcompiler]
-# Compilation
 main_file = "main.py"
-output_folder = "dist/Flash-Excel"
-compiler = "PyInstaller"
-console = false
-optimize = true
-strip = false
-debug = false
+output_folder = "dist/Flash-Excel"   # TEST: sortie dans .tmp/ (repasser en dist/Flash-Excel pour la prod)
 icon = "bin/assets/images/logo.ico"
-
-# Bundled assets
-# Note: bin/tufup/metadata/root.json est ajouté automatiquement par build.py
-# si disponible (généré par publish.py lors de la première release).
 include_files = { files = [], folders = ["bin"] }
 packages = []
 includes = []
 excludes = ["tkinter", "unittest", "xmlrpc", "pydoc", "doctest"]
 
-# Packaging
-zip_needed = false
-repo_needed = false
-upload_structure = "disk"
-repo_path = "releases"
+[tool.ezcompiler.advanced]
+debug = false
 
-# PyInstaller-specific options
-[tool.ezcompiler.compiler_options]
+[tool.ezcompiler.compilation]
+console = false
+compiler = "PyInstaller"
+
+# Options spécifiques PyInstaller (remplacent l'ancien [compiler_options]).
+# optimize/strip vivent désormais ici ; les autres clés sont passées telles
+# quelles à l'adaptateur PyInstaller.
+[tool.ezcompiler.pyinstaller]
+optimize = true
+strip = false
 onefile = false                   # Mode dossier (onedir) — pas de .exe unique
 contents-directory = "."          # Désactive _internal: tout à plat dans dist/
-collect-all = ["webview", "fastexcel", "polars", "_polars_runtime_32", "pydantic_core"]
+collect-all = "webview"           # Collecte tous les assets/hooks de pywebview
 collect-data = "flash_excel"      # Collecte les données du package (web/, assets...)
 exclude-module = "webview.platforms.android"  # Pas de module Android sous Windows
-additional-hooks-dir = "hooks"    # Hook files pour les extensions Rust/C (fastexcel, polars, pydantic_core)
-# Note: compiler_options est un dict (une valeur par clé).
-# Pour des flags supplémentaires (ex: hidden-import), les ajouter ici
-# avec des noms distincts, ex: hidden-import = "webview.platforms.winforms"
+
+# Canal d'update TUF poussé sur Cloudflare R2.
+#   repo_endpoint   = "<bucket>/<préfixe>" (objets sous repository/flash-excel/)
+#   repo_public_url = base publique servie par le domaine custom (lecture non
+#                     authentifiée par le client tufup) — DOIT inclure le préfixe.
+# Credentials d'upload via variables d'env (R2_ACCOUNT_ID/R2_ACCESS_KEY_ID/
+# R2_SECRET_ACCESS_KEY), jamais dans ce fichier.
+# release_destination = disk : le zip installeur n'est pas poussé sur R2.
+[tool.ezcompiler.upload]
+repo_destination = "r2"
+repo_endpoint = "repository/flash-excel"
+repo_public_url = "https://repository.neuraaak.fr/flash-excel"
+release_destination = "disk"
+
+# Release sécurisée TUF (tufup). Réutilise les clés de signature EXISTANTES —
+# ne jamais régénérer .tufup/keys sous peine de casser l'auto-update des
+# clients déjà installés.
+[tool.ezcompiler.release]
+tuf_enabled = true
+tuf_repo_dir = ".tufup/repo"
+tuf_keys_dir = ".tufup/keys"
+# Durées de vie (jours) des métadonnées TUF par rôle. Défauts tufup trop courts
+# pour une app publiée irrégulièrement (root=365, targets=7, snapshot=7,
+# timestamp=1) : les clients ne pourraient plus valider le repo entre deux
+# releases → auto-update cassé. Portés à 365 j pour les 4 rôles ; keep-alive
+# possible entre releases via `ezcompiler release refresh`.
+tuf_expiration_days = { root = 365, targets = 365, snapshot = 365, timestamp = 365 }
+
+# Installer Inno Setup. installer_per_user = true → installation PAR-UTILISATEUR
+# (%LOCALAPPDATA%\Programs, PrivilegesRequired=lowest) au lieu de Program Files :
+# indispensable pour que l'auto-update tufup s'applique en place sans élévation
+# admin. Géré nativement par ezcompiler ≥ 3.4.0 (plus besoin du .iss custom).
+# Sortie : dist/installer/<app>-<version>-setup.exe.
+[tool.ezcompiler.installer]
+installer_enabled = true
+installer_output_dir = "dist/installer"   # TEST: repasser en dist/installer pour la prod
+installer_per_user = true
 
 # /////////////////////////////////////////////////////////////////////
 # 🎨 CODE FORMATTING & LINTING TOOLS
@@ -170,7 +197,7 @@ additional-hooks-dir = "hooks"    # Hook files pour les extensions Rust/C (faste
 # /////////////////////////////////////////////////////////////////////
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 88
 
 [tool.ruff.lint]
@@ -217,7 +244,7 @@ line-ending = "auto"
 
 # ty: Type checking with minimal configuration
 [tool.ty.environment]
-python-version = "3.11"
+python-version = "3.13"
 root = ["src", "src/flash_excel"]
 
 [tool.ty.src]
@@ -242,7 +269,7 @@ error-on-warning = false
 
 # Pyright: Comprehensive type checking with detailed reporting
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.13"
 typeCheckingMode = "basic"
 
 # Include/exclude paths

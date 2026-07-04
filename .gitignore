@@ -263,6 +263,13 @@ commit_message.txt
 test_output/
 temp_projects/
 
+# Fichiers client d'auto-update générés par ezcompiler au build
+# (UpdaterService.generate → racine, à côté de main.py). Régénérés à chaque
+# build (settings.py embarque la VERSION), donc jamais versionnés.
+/update.py
+/settings.py
+/root.json
+
 # Configuration locale utilisateur
 local_config/
 user_settings/
