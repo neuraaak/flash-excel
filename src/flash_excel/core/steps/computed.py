@@ -314,7 +314,7 @@ def add_computed_column(
         # eval() is safe here: the AST is fully validated by _SafeVisitor before
         # reaching this point (whitelist of node types + allowed names), builtins
         # are stripped, and the namespace contains only Polars wrappers + column refs.
-        expr = eval(code_obj, {"__builtins__": {}}, namespace)  # noqa: S307
+        expr = eval(code_obj, {"__builtins__": {}}, namespace)  # noqa: S307  # nosec B307
     except Exception as exc:
         raise ValueError(f"Erreur d'évaluation : {exc}") from exc
 

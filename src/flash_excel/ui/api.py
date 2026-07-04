@@ -50,7 +50,7 @@ def _update_log(msg: str) -> None:
         line = f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n"
         with _UPDATE_LOG.open("a", encoding="utf-8") as fh:
             fh.write(line)
-    except Exception:  # noqa: BLE001, S110 - le log ne doit jamais casser l'app
+    except Exception:  # noqa: BLE001, S110 - le log ne doit jamais casser l'app  # nosec B110
         pass
 
 
@@ -136,7 +136,7 @@ class FlashExcelAPI:
             # termine brutalement le process pour libérer les fichiers
             # verrouillés que le script robocopy de tufup doit remplacer.
             time.sleep(0.3)
-            for window in list(webview.windows):
+            for window in webview.windows:
                 with contextlib.suppress(Exception):
                     window.destroy()
             os._exit(0)
@@ -204,7 +204,7 @@ class FlashExcelAPI:
                             "path": str(p),
                         }
                     )
-                except Exception:  # noqa: S110
+                except Exception:  # noqa: S110  # nosec B110
                     pass
             return _ok(result)
         except Exception as exc:
@@ -299,7 +299,7 @@ class FlashExcelAPI:
                 if raw:
                     try:  # noqa: SIM105
                         steps.append(_step_adapter.validate_python(raw))
-                    except Exception:  # noqa: S110
+                    except Exception:  # noqa: S110  # nosec B110
                         pass
 
             preset = Preset(
