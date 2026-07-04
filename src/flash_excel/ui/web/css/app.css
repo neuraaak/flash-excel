@@ -84,6 +84,12 @@ svg { display: block; }
 }
 .footer .heart { color: var(--semantic_error); }
 .footer-left { display: flex; align-items: center; gap: 5px; }
+.footer-version { display: flex; align-items: center; gap: 10px; }
+.update-link {
+  color: var(--accent_brand); font-weight: 600; text-decoration: none;
+  cursor: pointer; transition: opacity .12s;
+}
+.update-link:hover { text-decoration: underline; }
 
 /* ── Global Controls ─────────────────────────────── */
 .input {

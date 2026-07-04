@@ -1,5 +1,6 @@
 import SettingsModal from './SettingsModal.js';
 import LucideIcon    from './LucideIcon.js';
+import { api }       from '../api.js';
 
 export default {
   name: 'AppShell',
@@ -12,6 +13,9 @@ export default {
       showSettings:    false,
       sidebarExpanded: false,
       _windowWide:     false,
+      version:         '',
+      update:          { available: false, version: null },
+      updating:        false,
     };
   },
 
@@ -27,6 +31,10 @@ export default {
     this._ro = new ResizeObserver(update);
     this._ro.observe(document.documentElement);
     update();
+
+    // Version + vérification de mise à jour (attend que pywebview soit prêt).
+    if (globalThis.pywebview?.api) this._initVersion();
+    else globalThis.addEventListener('pywebviewready', () => this._initVersion(), { once: true });
   },
 
   beforeUnmount() {
@@ -36,6 +44,28 @@ export default {
   methods: {
     toggleSidebar() {
       this.sidebarExpanded = !this.sidebarExpanded;
+    },
+
+    async _initVersion() {
+      try {
+        const v = await api.getVersion();
+        this.version = v.version;
+      } catch (e) { console.debug('getVersion failed', e); }
+      try {
+        this.update = await api.checkUpdate();
+      } catch (e) { console.debug('checkUpdate failed', e); }
+    },
+
+    async applyUpdate() {
+      if (this.updating) return;
+      this.updating = true;
+      try {
+        await api.applyUpdate();
+        // Si la maj s'applique, l'app se ferme puis redémarre (tufup).
+      } catch (e) {
+        console.debug('applyUpdate failed', e);
+        this.updating = false;
+      }
     },
   },
 
@@ -104,7 +134,13 @@ export default {
       <!-- Footer -->
       <footer class="footer">
         <div class="footer-left">Made with <span class="heart">&#10084;</span> by Flash-Excel</div>
-        <div>v1.0.0</div>
+        <div class="footer-version">
+          <a v-if="update.available" class="update-link" href="#" @click.prevent="applyUpdate"
+             :title="'Update to v' + update.version">
+            {{ updating ? 'Updating…' : 'Update to v' + update.version }}
+          </a>
+          <span>v{{ version || '—' }}</span>
+        </div>
       </footer>
 
       <!-- Settings popup -->
