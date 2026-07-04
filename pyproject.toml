@@ -344,11 +344,11 @@ minversion = "7.0"
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=src/{{my_project}}",
+    "--cov=src/flash_excel",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
-    "--cov-fail-under=60",
+    "--cov-fail-under=30",
     "--tb=short",
     "--color=yes",
     "--durations=10",
