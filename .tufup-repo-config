@@ -5,9 +5,9 @@
     "encrypted_keys": [],
     "expiration_days": {
         "root": 365,
-        "snapshot": 7,
-        "targets": 7,
-        "timestamp": 1
+        "snapshot": 365,
+        "targets": 365,
+        "timestamp": 365
     },
     "key_map": {
         "root": [
