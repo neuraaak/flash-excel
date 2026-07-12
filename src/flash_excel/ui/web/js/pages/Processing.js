@@ -9,24 +9,24 @@ export default {
   data() {
     return {
       LEVEL_LABEL,
-      presets:            [],
+      presets: [],
       selectedPresetPath: '',
-      selectedPreset:     null,   // full preset dict from api.loadPreset
-      fileInfo:           null,   // { path, file_name, size_bytes, columns, ... }
+      selectedPreset: null,   // full preset dict from api.loadPreset
+      fileInfo: null,   // { path, file_name, size_bytes, columns, ... }
       outputConfig: {
-        format:     'keep',
-        folder:     './output/',
-        pattern:    '{name}_clean',
+        format: 'keep',
+        folder: './output/',
+        pattern: '{name}_clean',
         error_mode: 'skip',
       },
-      runState:    'idle',    // 'idle' | 'running' | 'done' | 'error' | 'stopped'
-      fileStatus:  'pending', // 'pending' | 'running' | 'done' | 'error' | 'skipped'
+      runState: 'idle',    // 'idle' | 'running' | 'done' | 'error' | 'stopped'
+      fileStatus: 'pending', // 'pending' | 'running' | 'done' | 'error' | 'skipped'
       fileProgress: 0,
       stats: { rows_out: 0, warnings: 0, errors: 0, elapsed_s: null },
-      logs:             [],
+      logs: [],
       consoleCollapsed: false,
-      consoleFilter:    'all',
-      autoScroll:       true,
+      consoleFilter: 'all',
+      autoScroll: true,
     };
   },
 
@@ -36,26 +36,26 @@ export default {
       return {
         pending: t('proc.status_pending'),
         running: t('proc.status_running'),
-        done:    t('proc.status_done'),
-        error:   t('proc.status_error'),
+        done: t('proc.status_done'),
+        error: t('proc.status_error'),
         skipped: t('proc.status_skipped'),
       };
     },
     ERROR_OPTS() {
       const t = this.i18n.t.bind(this.i18n);
       return [
-        { value: 'skip',   label: t('proc.err_skip'),   sub: t('proc.err_skip_sub') },
-        { value: 'stop',   label: t('proc.err_stop'),   sub: t('proc.err_stop_sub') },
+        { value: 'skip', label: t('proc.err_skip'), sub: t('proc.err_skip_sub') },
+        { value: 'stop', label: t('proc.err_stop'), sub: t('proc.err_stop_sub') },
         { value: 'ignore', label: t('proc.err_ignore'), sub: t('proc.err_ignore_sub') },
       ];
     },
     totalSteps() { return this.selectedPreset?.steps?.length ?? 0; },
-    stepNames()  { return this.selectedPreset?.steps?.map(s => s.action) ?? []; },
-    canRun()     { return !!this.fileInfo && !!this.selectedPresetPath && this.runState !== 'running'; },
+    stepNames() { return this.selectedPreset?.steps?.map(s => s.action) ?? []; },
+    canRun() { return !!this.fileInfo && !!this.selectedPresetPath && this.runState !== 'running'; },
     filteredLogs() {
       const f = this.consoleFilter;
-      if (f === 'all')  return this.logs;
-      if (f === 'err')  return this.logs.filter(l => l.level === 'err');
+      if (f === 'all') return this.logs;
+      if (f === 'err') return this.logs.filter(l => l.level === 'err');
       if (f === 'warn') return this.logs.filter(l => l.level === 'warn' || l.level === 'err');
       return this.logs.filter(l => ['info', 'ok', 'step'].includes(l.level));
     },
@@ -83,6 +83,11 @@ export default {
     async loadPresets() {
       try {
         this.presets = await api.getPresets();
+        const stillExists = this.presets.some(p => p.path === this.selectedPresetPath);
+        if (!stillExists) {
+          this.selectedPresetPath = '';
+          this.selectedPreset = null;
+        }
       } catch (e) {
         this.showToast(e.message, 'error');
       }
@@ -110,15 +115,15 @@ export default {
 
     async runPreset() {
       if (!this.canRun) return;
-      this.runState     = 'running';
-      this.fileStatus   = 'running';
+      this.runState = 'running';
+      this.fileStatus = 'running';
       this.fileProgress = 0;
-      this.stats        = { rows_out: 0, warnings: 0, errors: 0, elapsed_s: null };
-      this.logs         = [];
+      this.stats = { rows_out: 0, warnings: 0, errors: 0, elapsed_s: null };
+      this.logs = [];
       try {
         await api.runPreset(this.selectedPresetPath, this.fileInfo.path, this.outputConfig);
       } catch (e) {
-        this.runState   = 'error';
+        this.runState = 'error';
         this.fileStatus = 'error';
         this.pushLog('err', e.message);
       }
@@ -139,10 +144,10 @@ export default {
         this.fileProgress = this.totalSteps > 0 ? Math.round(idx / this.totalSteps * 100) : 0;
         this.pushLog('step', `${data.step_name} ✓ (${data.rows_in} → ${data.rows_out} rows)`);
       } else if (type === 'done') {
-        this.runState     = 'done';
-        this.fileStatus   = 'done';
+        this.runState = 'done';
+        this.fileStatus = 'done';
         this.fileProgress = 100;
-        this.stats.rows_out  = data.rows_out;
+        this.stats.rows_out = data.rows_out;
         this.stats.elapsed_s = data.elapsed_s;
         this.pushLog('ok', `Done in ${data.elapsed_s}s → ${data.output_path}`);
       } else if (type === 'error') {
@@ -174,11 +179,11 @@ export default {
     },
 
     resetRun() {
-      this.runState     = 'idle';
-      this.fileStatus   = 'pending';
+      this.runState = 'idle';
+      this.fileStatus = 'pending';
       this.fileProgress = 0;
-      this.stats        = { rows_out: 0, warnings: 0, errors: 0, elapsed_s: null };
-      this.logs         = [];
+      this.stats = { rows_out: 0, warnings: 0, errors: 0, elapsed_s: null };
+      this.logs = [];
     },
 
     fileSizeLabel(bytes) {

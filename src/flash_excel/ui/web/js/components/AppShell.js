@@ -1,21 +1,22 @@
 import SettingsModal from './SettingsModal.js';
-import LucideIcon    from './LucideIcon.js';
-import { api }       from '../api.js';
+import LucideIcon from './LucideIcon.js';
+import { api } from '../api.js';
 
 export default {
   name: 'AppShell',
   components: { SettingsModal, LucideIcon },
   props: { currentPage: { type: String, default: 'processing' } },
   emits: ['navigate'],
+  inject: ['i18n'],
 
   data() {
     return {
-      showSettings:    false,
+      showSettings: false,
       sidebarExpanded: false,
-      _windowWide:     false,
-      version:         '',
-      update:          { available: false, version: null },
-      updating:        false,
+      _windowWide: false,
+      version: '',
+      update: { available: false, version: null },
+      updating: false,
     };
   },
 
@@ -39,6 +40,10 @@ export default {
 
   beforeUnmount() {
     this._ro?.disconnect();
+  },
+
+  computed: {
+    t() { return this.i18n.t; },
   },
 
   methods: {
@@ -77,31 +82,31 @@ export default {
         <nav class="sidebar" :class="{ expanded: sidebarExpanded }">
 
           <!-- Toggle -->
-          <button class="nav-btn nav-toggle" @click="toggleSidebar" title="Toggle menu">
+          <button class="nav-btn nav-toggle" @click="toggleSidebar" :title="t('nav.toggle_menu')">
             <span class="nav-ico">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
                 <path d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
             </span>
-            <span class="nav-label">Menu</span>
+            <span class="nav-label">{{ t('nav.menu') }}</span>
           </button>
 
           <div class="nav-sep"></div>
 
           <!-- Processing -->
           <button class="nav-btn" :class="{ active: currentPage === 'processing' }"
-            title="Processing" @click="$emit('navigate', 'processing')">
+            :title="t('nav.processing')" @click="$emit('navigate', 'processing')">
             <span class="nav-ico">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M13 2L4.5 13H11l-1 9 8.5-11.5H12z"/>
               </svg>
             </span>
-            <span class="nav-label">Processing</span>
+            <span class="nav-label">{{ t('nav.processing') }}</span>
           </button>
 
           <!-- Presets -->
           <button class="nav-btn" :class="{ active: currentPage === 'presets' }"
-            title="Presets" @click="$emit('navigate', 'presets')">
+            :title="t('nav.presets')" @click="$emit('navigate', 'presets')">
             <span class="nav-ico">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 7h6M5 12h10M5 17h6"/>
@@ -109,7 +114,7 @@ export default {
                 <circle cx="18" cy="17" r="2"/>
               </svg>
             </span>
-            <span class="nav-label">Presets</span>
+            <span class="nav-label">{{ t('nav.presets') }}</span>
           </button>
 
           <div class="nav-spacer"></div>
@@ -117,11 +122,11 @@ export default {
 
           <!-- Settings -->
           <button class="nav-btn" :class="{ active: showSettings }"
-            title="Settings" @click="showSettings = true">
+            :title="t('nav.settings')" @click="showSettings = true">
             <span class="nav-ico">
               <LucideIcon name="settings" :size="18" />
             </span>
-            <span class="nav-label">Settings</span>
+            <span class="nav-label">{{ t('nav.settings') }}</span>
           </button>
 
         </nav>
@@ -133,11 +138,11 @@ export default {
 
       <!-- Footer -->
       <footer class="footer">
-        <div class="footer-left">Made with <span class="heart">&#10084;</span> by Flash-Excel</div>
+        <div class="footer-left">{{ t('footer.made_with') }} <span class="heart">&#10084;</span> Flash-Excel</div>
         <div class="footer-version">
           <a v-if="update.available" class="update-link" href="#" @click.prevent="applyUpdate"
-             :title="'Update to v' + update.version">
-            {{ updating ? 'Updating…' : 'Update to v' + update.version }}
+             :title="t('update.to') + ' v' + update.version">
+            {{ updating ? t('update.updating') : t('update.to') + ' v' + update.version }}
           </a>
           <span>v{{ version || '—' }}</span>
         </div>
