@@ -230,6 +230,8 @@ jobs:
     needs: auto-tag
     if: needs.auto-tag.outputs.new_tag == 'true'
     uses: ./.github/workflows/03-docs.yml
+    permissions:
+      contents: write
     secrets: inherit
     with:
       version: ${{ needs.auto-tag.outputs.version }}
