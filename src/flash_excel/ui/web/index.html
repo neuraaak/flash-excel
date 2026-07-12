@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,31 +22,32 @@
         extend: {
           colors: {
             // Surfaces — préfixe tw- pour distinguer de Tailwind natif
-            'tw-sunken':   'var(--surface_sunken)',
-            'tw-base':     'var(--surface_base)',
-            'tw-raised':   'var(--surface_raised)',
-            'tw-overlay':  'var(--surface_overlay)',
+            'tw-sunken': 'var(--surface_sunken)',
+            'tw-base': 'var(--surface_base)',
+            'tw-raised': 'var(--surface_raised)',
+            'tw-overlay': 'var(--surface_overlay)',
             'tw-floating': 'var(--surface_floating)',
-            'tw-border':   'var(--border_subtle)',
+            'tw-border': 'var(--border_subtle)',
             // Accent
-            'tw-accent':         'var(--accent_brand)',
-            'tw-accent-weak':    'var(--accent_weak)',
-            'tw-accent-line':    'var(--accent_line)',
+            'tw-accent': 'var(--accent_brand)',
+            'tw-accent-weak': 'var(--accent_weak)',
+            'tw-accent-line': 'var(--accent_line)',
             // Texte
-            'tw-text':           'var(--text_primary)',
-            'tw-text-muted':     'var(--text_secondary)',
+            'tw-text': 'var(--text_primary)',
+            'tw-text-muted': 'var(--text_secondary)',
             'tw-text-on-accent': 'var(--text_on_accent)',
             // Sémantiques
             'tw-success': 'var(--semantic_success)',
             'tw-warning': 'var(--semantic_warning)',
-            'tw-error':   'var(--semantic_error)',
-            'tw-info':    'var(--semantic_info)',
+            'tw-error': 'var(--semantic_error)',
+            'tw-info': 'var(--semantic_info)',
           },
         },
       },
     };
   </script>
 </head>
+
 <body>
   <div id="app">
     <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7a869e;font-size:13px;">
@@ -55,10 +57,10 @@
 
   <script type="module">
     import { createApp } from './js/vendor/vue.esm-browser.prod.js';
-    import AppShell     from './js/components/AppShell.js';
-    import PresetsPage     from './js/pages/Presets.js';
-    import ProcessingPage  from './js/pages/Processing.js';
-    import { i18n }     from './js/i18n.js';
+    import AppShell from './js/components/AppShell.js';
+    import PresetsPage from './js/pages/Presets.js';
+    import ProcessingPage from './js/pages/Processing.js';
+    import { i18n } from './js/i18n.js';
 
     // Tokens CSS appliqués depuis une palette YAML
     const THEME_TOKENS = [
@@ -94,7 +96,10 @@
         return { currentPage: 'processing', toasts: [] };
       },
       methods: {
-        navigate(page) { this.currentPage = page; },
+        navigate(page) {
+          this.currentPage = page;
+          if (page === 'processing') this.$refs.processingPage?.loadPresets();
+        },
         showToast(message, type = 'success') {
           const id = Date.now();
           this.toasts.push({ id, message, type });
@@ -107,7 +112,7 @@
       template: `
         <AppShell :currentPage="currentPage" @navigate="navigate">
           <PresetsPage v-show="currentPage === 'presets'" />
-          <ProcessingPage v-show="currentPage === 'processing'" />
+          <ProcessingPage ref="processingPage" v-show="currentPage === 'processing'" />
         </AppShell>
         <div class="toast-container">
           <div v-for="t in toasts" :key="t.id" class="toast" :class="'toast--' + t.type">{{ t.message }}</div>
@@ -125,4 +130,5 @@
     createApp(App).mount('#app');
   </script>
 </body>
+
 </html>
