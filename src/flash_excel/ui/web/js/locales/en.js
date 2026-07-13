@@ -104,6 +104,15 @@ export default {
   'table.op_contains': 'contains',
   'table.op_startswith': 'starts with',
   'table.op_endswith': 'ends with',
+  'table.sort_hint': 'Keys apply top to bottom — the first is the primary sort.',
+
+  // Cast types (CastTable) — display labels for backend type keys
+  'cast.type_string': 'Text',
+  'cast.type_int': 'Whole number',
+  'cast.type_float': 'Decimal number',
+  'cast.type_bool': 'Boolean (True/False)',
+  'cast.type_date': 'Date',
+  'cast.type_datetime': 'Date & time',
 
   // Clean text modal
   'clean.cols': 'Target columns',

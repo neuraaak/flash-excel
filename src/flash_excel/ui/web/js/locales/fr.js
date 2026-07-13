@@ -104,6 +104,15 @@ export default {
   'table.op_contains': 'contient',
   'table.op_startswith': 'commence par',
   'table.op_endswith': 'se termine par',
+  'table.sort_hint': "Les clés s'appliquent de haut en bas — la première est le tri principal.",
+
+  // Cast types (CastTable) — libellés affichés pour les clés de type backend
+  'cast.type_string': 'Texte',
+  'cast.type_int': 'Nombre entier',
+  'cast.type_float': 'Nombre décimal',
+  'cast.type_bool': 'Booléen (Vrai/Faux)',
+  'cast.type_date': 'Date',
+  'cast.type_datetime': 'Date et heure',
 
   // Clean text modal
   'clean.cols': 'Colonnes cibles',
