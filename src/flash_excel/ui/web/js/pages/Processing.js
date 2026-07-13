@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { stepLabel } from '../steps-registry.js';
 
 const LEVEL_LABEL = { info: 'INFO', ok: 'OK', step: 'STEP', warn: 'WARN', err: 'ERROR' };
 
@@ -143,7 +144,7 @@ export default {
       if (type === 'step') {
         const idx = data.step_index + 1;
         this.fileProgress = this.totalSteps > 0 ? Math.round(idx / this.totalSteps * 100) : 0;
-        this.pushLog('step', `${data.step_name} ✓ (${data.rows_in} → ${data.rows_out} rows)`);
+        this.pushLog('step', `${stepLabel(data.step_name, this.i18n.t)} ✓ (${data.rows_in} → ${data.rows_out} rows)`);
       } else if (type === 'done') {
         this.runState = 'done';
         this.fileStatus = 'done';
@@ -194,6 +195,8 @@ export default {
     },
 
     fileExt(name) { return name?.split('.').pop().toLowerCase() ?? ''; },
+
+    stepDisplay(action) { return stepLabel(action, this.i18n.t); },
   },
 
   template: `
@@ -326,7 +329,7 @@ export default {
             <span class="pb-count">{{ totalSteps }} {{ i18n.t('proc.actions') }}</span>
           </div>
           <div class="pb-ops">
-            <span v-for="s in stepNames" :key="s" class="op-tag">{{ s }}</span>
+            <span v-for="s in stepNames" :key="s" class="op-tag">{{ stepDisplay(s) }}</span>
           </div>
         </div>
       </div>
