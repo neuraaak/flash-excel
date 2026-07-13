@@ -84,6 +84,35 @@ export default {
   'table.dedupe_cols': 'Deduplication keys',
   'table.sort_keys': 'Sort keys',
   'table.col_order': 'Column order',
+  'table.select_kept': '{n} of {total} kept',
+  'table.select_hint': 'Columns toggled off are dropped from the output.',
+  'table.dedupe_keep_label': 'When duplicates are found, keep',
+  'table.dedupe_first': 'First row',
+  'table.dedupe_last': 'Last row',
+  'table.dedupe_hint': 'Rows are duplicates when all selected key columns match. Leave empty to use all columns.',
+  'table.replace_empty_title': 'No replacements yet',
+  'table.replace_empty_sub': 'Add a rule to find and replace values.',
+  'table.find': 'Find',
+  'table.replace_with': 'Replace with',
+  'table.clean_no_transform': 'No transform',
+  'table.clean_empty_sub': 'Add a clean action to trim, normalise case or strip characters.',
+  'table.filter_keep_matching': 'Keep rows matching',
+  'table.filter_all': 'All conditions',
+  'table.filter_any': 'Any condition',
+  'table.filter_empty_title': 'No conditions yet',
+  'table.filter_empty_sub': 'All rows are kept until you add a condition.',
+  'table.op_contains': 'contains',
+  'table.op_startswith': 'starts with',
+  'table.op_endswith': 'ends with',
+  'table.sort_hint': 'Keys apply top to bottom — the first is the primary sort.',
+
+  // Cast types (CastTable) — display labels for backend type keys
+  'cast.type_string': 'Text',
+  'cast.type_int': 'Whole number',
+  'cast.type_float': 'Decimal number',
+  'cast.type_bool': 'Boolean (True/False)',
+  'cast.type_date': 'Date',
+  'cast.type_datetime': 'Date & time',
 
   // Clean text modal
   'clean.cols': 'Target columns',
@@ -107,6 +136,7 @@ export default {
   'computed.col_name': 'New column name',
   'computed.edit_title': 'Edit computed column',
   'computed.add_title': 'New computed column',
+  'computed.separators': 'Separators',
 
   // Modal actions
   'modal.cancel': 'Cancel',
@@ -159,6 +189,17 @@ export default {
   'proc.status_done': 'Done',
   'proc.status_error': 'Error',
   'proc.status_skipped': 'Skipped',
+
+  // Console log messages (backend events, params interpolated via {name})
+  'log.loading': 'Loading {file}…',
+  'log.parsed': 'Parsed {rows} rows × {cols} columns',
+  'log.preset_steps': "Preset '{name}' — {count} step(s)",
+  'log.run_stopped': 'Run stopped by user.',
+  'log.skip_error': "Skipping file due to error in '{step}'",
+  'log.writing_output': 'Writing output → {path}',
+  'log.run_failed': 'Run failed after {elapsed}s: {error}',
+  'log.done': 'Done in {elapsed}s → {path}',
+  'log.console_cleared': 'Console cleared.',
 
   // Settings modal
   'settings.title': 'Settings',

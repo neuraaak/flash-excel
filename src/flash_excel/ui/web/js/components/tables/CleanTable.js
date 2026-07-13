@@ -1,6 +1,6 @@
 import { toRaw } from '../../vendor/vue.esm-browser.prod.js';
 
-const ALL_OPS   = ['trim', 'collapse', 'accents', 'special'];
+const ALL_OPS = ['trim', 'collapse', 'accents', 'special'];
 const ALL_CASES = ['none', 'lower', 'upper', 'title'];
 
 // Types Polars et types de cast JS considérés comme texte
@@ -12,18 +12,18 @@ const STRING_TYPES = new Set([
 export default {
   name: 'CleanTable',
   props: {
-    columns: { type: Array,  default: () => [] },
-    schema:  { type: Object, default: () => ({}) },
+    columns: { type: Array, default: () => [] },
+    schema: { type: Object, default: () => ({}) },
     payload: { type: Object, default: () => ({}) },
   },
   emits: ['update:payload'],
   inject: ['i18n'],
   data() {
     return {
-      items:     [],
+      items: [],
       showModal: false,
-      editIdx:   null,
-      draft:     { columns: [], ops: [], case: 'none' },
+      editIdx: null,
+      draft: { columns: [], ops: [], case: 'none' },
     };
   },
   computed: {
@@ -44,10 +44,12 @@ export default {
     canSave() { return this.draft.columns.length > 0; },
   },
   watch: {
-    payload: { immediate: true, handler(v) {
-      if (this._emitting) return;
-      this.items = v.items ? structuredClone(toRaw(v.items)) : [];
-    }},
+    payload: {
+      immediate: true, handler(v) {
+        if (this._emitting) return;
+        this.items = v.items ? structuredClone(toRaw(v.items)) : [];
+      }
+    },
   },
   methods: {
     _dbg(msg) {
@@ -68,13 +70,13 @@ export default {
 
     openAdd() {
       this.editIdx = null;
-      this.draft   = { columns: [], ops: [], case: 'none' };
+      this.draft = { columns: [], ops: [], case: 'none' };
       this.showModal = true;
       this._dbg('openAdd: modal opened');
     },
     openEdit(i) {
       this.editIdx = i;
-      this.draft   = structuredClone(toRaw(this.items[i]));
+      this.draft = structuredClone(toRaw(this.items[i]));
       this.showModal = true;
       this._dbg(`openEdit: editing index ${i}`);
     },
@@ -113,7 +115,7 @@ export default {
       this.emit();
     },
 
-    opLabel(op)  { return this.t('clean.op_' + op); },
+    opLabel(op) { return this.t('clean.op_' + op); },
     caseLabel(c) { return this.t('clean.case_' + c); },
   },
   template: `
@@ -128,7 +130,7 @@ export default {
           <div class="clean-ops">
             <span v-for="op in it.ops" :key="op" class="tag op">{{ opLabel(op) }}</span>
             <span v-if="it.case && it.case !== 'none'" class="tag op">{{ caseLabel(it.case) }}</span>
-            <span v-if="!it.ops.length && (!it.case || it.case === 'none')" class="tag muted">No transform</span>
+            <span v-if="!it.ops.length && (!it.case || it.case === 'none')" class="tag muted">{{ t('table.clean_no_transform') }}</span>
           </div>
           <div class="clean-actions">
             <button class="mini-btn" @click="openEdit(i)" :title="t('clean.edit')">
@@ -144,7 +146,7 @@ export default {
       <!-- Empty state -->
       <div v-if="!items.length" class="empty-state" style="margin-bottom:10px;">
         <span class="es-title">{{ t('clean.configure') }}</span>
-        <span class="es-sub">Add a clean action to trim, normalise case or strip characters.</span>
+        <span class="es-sub">{{ t('table.clean_empty_sub') }}</span>
       </div>
 
       <!-- Add button (always visible) -->

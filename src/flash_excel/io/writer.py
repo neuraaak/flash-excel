@@ -33,29 +33,40 @@ _EXCEL_DTYPE_FORMATS: dict = {
 }
 
 
-def _coerce_booleans(df: pl.DataFrame) -> pl.DataFrame:
-    """Convert Boolean columns to VRAI/FAUX strings (Excel-friendly)."""
+_BOOL_LABELS: dict = {
+    "en": ("True", "False"),
+    "fr": ("VRAI", "FAUX"),
+}
+
+
+def _coerce_booleans(df: pl.DataFrame, locale: str = "fr") -> pl.DataFrame:
+    """Convert Boolean columns to localized True/False strings (Excel-friendly)."""
     bool_cols = [name for name, dtype in df.schema.items() if dtype == pl.Boolean]
     if not bool_cols:
         return df
+    true_label, false_label = _BOOL_LABELS.get(locale, _BOOL_LABELS["fr"])
     return df.with_columns(
         [
-            pl.when(pl.col(c)).then(pl.lit("VRAI")).otherwise(pl.lit("FAUX")).alias(c)
+            pl.when(pl.col(c))
+            .then(pl.lit(true_label))
+            .otherwise(pl.lit(false_label))
+            .alias(c)
             for c in bool_cols
         ]
     )
 
 
-def write_excel(df: pl.DataFrame, path: Path) -> None:
+def write_excel(df: pl.DataFrame, path: Path, locale: str = "fr") -> None:
     """Write a DataFrame to an Excel file (.xlsx).
 
-    Boolean columns are converted to VRAI/FAUX. Date and Datetime columns
-    receive locale-appropriate format strings. All other types are written
-    natively via xlsxwriter.
+    Boolean columns are converted to a localized True/False string. Date and
+    Datetime columns receive locale-appropriate format strings. All other
+    types are written natively via xlsxwriter.
 
     Args:
         df: DataFrame to write.
         path: Destination path for the ``.xlsx`` file.
+        locale: UI locale (``"en"`` or ``"fr"``) driving the boolean labels.
 
     Raises:
         OSError: If the parent directory cannot be created or the file
@@ -68,7 +79,7 @@ def write_excel(df: pl.DataFrame, path: Path) -> None:
         >>> write_excel(df, Path("output/rapport.xlsx"))
     """
     path.parent.mkdir(parents=True, exist_ok=True)
-    df = _coerce_booleans(df)
+    df = _coerce_booleans(df, locale)
     df.write_excel(path, dtype_formats=_EXCEL_DTYPE_FORMATS)
 
 
@@ -115,19 +126,21 @@ def write_parquet(df: pl.DataFrame, path: Path) -> None:
     df.write_parquet(path)
 
 
-def write_dataframe(df: pl.DataFrame, path: Path, fmt: str) -> None:
+def write_dataframe(df: pl.DataFrame, path: Path, fmt: str, locale: str = "fr") -> None:
     """Dispatch DataFrame writing based on format.
 
     Args:
         df: DataFrame to write.
         path: Destination path (extension must match fmt).
         fmt: One of ``'xlsx'``, ``'csv'``, ``'parquet'``. Never ``'keep'`` — resolve first.
+        locale: UI locale (``"en"`` or ``"fr"``), forwarded to ``write_excel``
+            for boolean label formatting. Ignored for ``'csv'``/``'parquet'``.
 
     Raises:
         ValueError: If fmt is not a supported format.
     """
     if fmt == "xlsx":
-        write_excel(df, path)
+        write_excel(df, path, locale)
     elif fmt == "csv":
         write_csv(df, path)
     elif fmt == "parquet":

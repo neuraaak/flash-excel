@@ -1,25 +1,26 @@
-import RenameTable      from './tables/RenameTable.js';
-import SelectTable      from './tables/SelectTable.js';
-import CastTable        from './tables/CastTable.js';
-import ReplaceTable     from './tables/ReplaceTable.js';
-import CleanTable        from './tables/CleanTable.js';
-import ComputedTable    from './tables/ComputedTable.js';
-import FilterTable      from './tables/FilterTable.js';
+import { STEP_ACTIONS, stepLabel, stepDesc } from '../steps-registry.js';
+import RenameTable from './tables/RenameTable.js';
+import SelectTable from './tables/SelectTable.js';
+import CastTable from './tables/CastTable.js';
+import ReplaceTable from './tables/ReplaceTable.js';
+import CleanTable from './tables/CleanTable.js';
+import ComputedTable from './tables/ComputedTable.js';
+import FilterTable from './tables/FilterTable.js';
 import DeduplicateTable from './tables/DeduplicateTable.js';
-import SortTable        from './tables/SortTable.js';
-import ReorderTable     from './tables/ReorderTable.js';
+import SortTable from './tables/SortTable.js';
+import ReorderTable from './tables/ReorderTable.js';
 
 const EDITOR_MAP = {
-  rename_columns:      RenameTable,
-  select_columns:      SelectTable,
-  cast_types:          CastTable,
-  replace_values:      ReplaceTable,
-  clean_text:          CleanTable,
+  rename_columns: RenameTable,
+  select_columns: SelectTable,
+  cast_types: CastTable,
+  replace_values: ReplaceTable,
+  clean_text: CleanTable,
   add_computed_column: ComputedTable,
-  filter_rows:         FilterTable,
-  deduplicate_rows:    DeduplicateTable,
-  sort_rows:           SortTable,
-  reorder_columns:     ReorderTable,
+  filter_rows: FilterTable,
+  deduplicate_rows: DeduplicateTable,
+  sort_rows: SortTable,
+  reorder_columns: ReorderTable,
 };
 
 /**
@@ -95,14 +96,14 @@ function applyStepToSchema(action, payload, schema) {
 
 function countPayload(p) {
   if (!p) return 0;
-  if (p.mapping)          return Object.keys(p.mapping).length;
-  if (p.columns)          return p.columns.length;
-  if (p.casts)            return Object.keys(p.casts).length;
-  if (p.rules_by_column)  return Object.keys(p.rules_by_column).length;
-  if (p.items)            return p.items.length;
-  if (p.conditions)       return p.conditions.length;
-  if (p.subset)           return p.subset.length;
-  if (p.by)               return p.by.length;
+  if (p.mapping) return Object.keys(p.mapping).length;
+  if (p.columns) return p.columns.length;
+  if (p.casts) return Object.keys(p.casts).length;
+  if (p.rules_by_column) return Object.keys(p.rules_by_column).length;
+  if (p.items) return p.items.length;
+  if (p.conditions) return p.conditions.length;
+  if (p.subset) return p.subset.length;
+  if (p.by) return p.by.length;
   return 0;
 }
 
@@ -110,28 +111,21 @@ export default {
   name: 'ActionSteps',
   components: { ...EDITOR_MAP },
   props: {
-    columns:  { type: Array,  default: () => [] },
-    schema:   { type: Object, default: () => ({}) },
+    columns: { type: Array, default: () => [] },
+    schema: { type: Object, default: () => ({}) },
     payloads: { type: Object, default: () => ({}) },
   },
   emits: ['update:payloads'],
   inject: ['i18n'],
   data() { return { activeAction: null }; },
   computed: {
-    t()      { return this.i18n.t; },
-    steps()  {
-      return [
-        { action: 'rename_columns',      label: this.t('steps.rename'),   desc: this.t('steps.rename.desc')   },
-        { action: 'select_columns',      label: this.t('steps.select'),   desc: this.t('steps.select.desc')   },
-        { action: 'cast_types',          label: this.t('steps.cast'),     desc: this.t('steps.cast.desc')     },
-        { action: 'replace_values',      label: this.t('steps.replace'),  desc: this.t('steps.replace.desc')  },
-        { action: 'clean_text',          label: this.t('steps.clean'),    desc: this.t('steps.clean.desc')    },
-        { action: 'add_computed_column', label: this.t('steps.computed'), desc: this.t('steps.computed.desc') },
-        { action: 'filter_rows',         label: this.t('steps.filter'),   desc: this.t('steps.filter.desc')   },
-        { action: 'deduplicate_rows',    label: this.t('steps.dedupe'),   desc: this.t('steps.dedupe.desc')   },
-        { action: 'sort_rows',           label: this.t('steps.sort'),     desc: this.t('steps.sort.desc')     },
-        { action: 'reorder_columns',     label: this.t('steps.reorder'),  desc: this.t('steps.reorder.desc')  },
-      ];
+    t() { return this.i18n.t; },
+    steps() {
+      return STEP_ACTIONS.map(action => ({
+        action,
+        label: stepLabel(action, this.t),
+        desc: stepDesc(action, this.t),
+      }));
     },
 
     // Colonnes disponibles en entrée de chaque step
@@ -156,12 +150,12 @@ export default {
       return result;
     },
 
-    activeEditor()   { return this.activeAction ? EDITOR_MAP[this.activeAction] : null; },
-    activePayload()  { return this.activeAction ? (this.payloads[this.activeAction] || {}) : {}; },
-    activeStep()     { return this.steps.find(s => s.action === this.activeAction); },
-    activeCount()    { return countPayload(this.activePayload); },
-    activeColumns()  { return this.activeAction ? (this.columnsByStep[this.activeAction] || this.columns) : this.columns; },
-    activeSchema()   { return this.activeAction ? (this.schemaByStep[this.activeAction] || this.schema) : this.schema; },
+    activeEditor() { return this.activeAction ? EDITOR_MAP[this.activeAction] : null; },
+    activePayload() { return this.activeAction ? (this.payloads[this.activeAction] || {}) : {}; },
+    activeStep() { return this.steps.find(s => s.action === this.activeAction); },
+    activeCount() { return countPayload(this.activePayload); },
+    activeColumns() { return this.activeAction ? (this.columnsByStep[this.activeAction] || this.columns) : this.columns; },
+    activeSchema() { return this.activeAction ? (this.schemaByStep[this.activeAction] || this.schema) : this.schema; },
   },
   methods: {
     countFor(action) { return countPayload(this.payloads[action]); },

@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { stepLabel } from '../steps-registry.js';
 
 const LEVEL_LABEL = { info: 'INFO', ok: 'OK', step: 'STEP', warn: 'WARN', err: 'ERROR' };
 
@@ -143,14 +144,14 @@ export default {
       if (type === 'step') {
         const idx = data.step_index + 1;
         this.fileProgress = this.totalSteps > 0 ? Math.round(idx / this.totalSteps * 100) : 0;
-        this.pushLog('step', `${data.step_name} ✓ (${data.rows_in} → ${data.rows_out} rows)`);
+        this.pushLog('step', `${stepLabel(data.step_name, this.i18n.t)} ✓ (${data.rows_in} → ${data.rows_out} rows)`);
       } else if (type === 'done') {
         this.runState = 'done';
         this.fileStatus = 'done';
         this.fileProgress = 100;
         this.stats.rows_out = data.rows_out;
         this.stats.elapsed_s = data.elapsed_s;
-        this.pushLog('ok', `Done in ${data.elapsed_s}s → ${data.output_path}`);
+        this.pushLog('ok', this.i18n.t('log.done', { elapsed: data.elapsed_s, path: data.output_path }));
       } else if (type === 'error') {
         const em = this.outputConfig.error_mode;
         this.stats.errors++;
@@ -162,7 +163,7 @@ export default {
         }
       } else if (type === 'log') {
         if (data.level === 'warn') this.stats.warnings++;
-        this.pushLog(data.level, data.message);
+        this.pushLog(data.level, data.key ? this.i18n.t(data.key, data.params) : data.message);
       }
     },
 
@@ -194,6 +195,8 @@ export default {
     },
 
     fileExt(name) { return name?.split('.').pop().toLowerCase() ?? ''; },
+
+    stepDisplay(action) { return stepLabel(action, this.i18n.t); },
   },
 
   template: `
@@ -283,7 +286,7 @@ export default {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
         </span>
         <span class="con-tool" title="Clear console"
-          @click.stop="logs = []; pushLog('info', 'Console cleared.')">
+          @click.stop="logs = []; pushLog('info', i18n.t('log.console_cleared'))">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
         </span>
       </div>
@@ -326,7 +329,7 @@ export default {
             <span class="pb-count">{{ totalSteps }} {{ i18n.t('proc.actions') }}</span>
           </div>
           <div class="pb-ops">
-            <span v-for="s in stepNames" :key="s" class="op-tag">{{ s }}</span>
+            <span v-for="s in stepNames" :key="s" class="op-tag">{{ stepDisplay(s) }}</span>
           </div>
         </div>
       </div>

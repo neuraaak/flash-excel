@@ -12,14 +12,17 @@ export default {
     availableForNew() { return this.columns.filter(c => !this.usedCols.has(c)); },
   },
   watch: {
-    payload: { immediate: true, handler(v) {
-      if (this._emitting) return;
-      const casts = v.casts || {};
-      const entries = Object.entries(casts);
-      this.rows = entries.length ? entries.map(([col, type]) => ({ col, type })) : [];
-    }},
+    payload: {
+      immediate: true, handler(v) {
+        if (this._emitting) return;
+        const casts = v.casts || {};
+        const entries = Object.entries(casts);
+        this.rows = entries.length ? entries.map(([col, type]) => ({ col, type })) : [];
+      }
+    },
   },
   methods: {
+    typeLabel(ct) { return this.t('cast.type_' + ct); },
     emit() {
       this._emitting = true;
       const casts = {};
@@ -51,7 +54,7 @@ export default {
           </span>
           <span class="select-wrap">
             <select v-model="r.type" @change="emit">
-              <option v-for="ct in castTypes" :key="ct" :value="ct">{{ ct }}</option>
+              <option v-for="ct in castTypes" :key="ct" :value="ct">{{ typeLabel(ct) }}</option>
             </select>
           </span>
           <button class="rule-del" @click="removeRow(i)" title="Remove">

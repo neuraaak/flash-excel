@@ -10,11 +10,13 @@ export default {
     availableForNew() { return this.columns.filter(c => !this.usedCols.has(c)); },
   },
   watch: {
-    payload: { immediate: true, handler(v) {
-      const by = v.by || [];
-      const desc = v.descending;
-      this.rows = by.map((col, i) => ({ col, desc: Array.isArray(desc) ? !!desc[i] : !!desc }));
-    }},
+    payload: {
+      immediate: true, handler(v) {
+        const by = v.by || [];
+        const desc = v.descending;
+        this.rows = by.map((col, i) => ({ col, desc: Array.isArray(desc) ? !!desc[i] : !!desc }));
+      }
+    },
   },
   methods: {
     emit() {
@@ -54,7 +56,7 @@ export default {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         {{ t('table.add_rule') }}
       </button>
-      <div class="panel-hint">Keys apply top to bottom — the first is the primary sort.</div>
+      <div class="panel-hint">{{ t('table.sort_hint') }}</div>
     </div>
   `,
 };

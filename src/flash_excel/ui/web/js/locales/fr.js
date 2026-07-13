@@ -84,6 +84,35 @@ export default {
   'table.dedupe_cols': 'Clés de déduplication',
   'table.sort_keys': 'Clés de tri',
   'table.col_order': 'Ordre des colonnes',
+  'table.select_kept': '{n} sur {total} conservée(s)',
+  'table.select_hint': 'Les colonnes désactivées sont exclues du fichier de sortie.',
+  'table.dedupe_keep_label': 'En cas de doublon, conserver',
+  'table.dedupe_first': 'La première ligne',
+  'table.dedupe_last': 'La dernière ligne',
+  'table.dedupe_hint': 'Deux lignes sont des doublons si toutes les colonnes clés sélectionnées correspondent. Laisser vide pour utiliser toutes les colonnes.',
+  'table.replace_empty_title': 'Aucun remplacement pour le moment',
+  'table.replace_empty_sub': 'Ajouter une règle de recherche et remplacement.',
+  'table.find': 'Rechercher',
+  'table.replace_with': 'Remplacer par',
+  'table.clean_no_transform': 'Aucune transformation',
+  'table.clean_empty_sub': 'Ajouter une action de nettoyage pour rogner, normaliser la casse ou supprimer des caractères.',
+  'table.filter_keep_matching': 'Conserver les lignes correspondant à',
+  'table.filter_all': 'Toutes les conditions',
+  'table.filter_any': "N'importe quelle condition",
+  'table.filter_empty_title': 'Aucune condition pour le moment',
+  'table.filter_empty_sub': "Toutes les lignes sont conservées tant qu'aucune condition n'est ajoutée.",
+  'table.op_contains': 'contient',
+  'table.op_startswith': 'commence par',
+  'table.op_endswith': 'se termine par',
+  'table.sort_hint': "Les clés s'appliquent de haut en bas — la première est le tri principal.",
+
+  // Cast types (CastTable) — libellés affichés pour les clés de type backend
+  'cast.type_string': 'Texte',
+  'cast.type_int': 'Nombre entier',
+  'cast.type_float': 'Nombre décimal',
+  'cast.type_bool': 'Booléen (Vrai/Faux)',
+  'cast.type_date': 'Date',
+  'cast.type_datetime': 'Date et heure',
 
   // Clean text modal
   'clean.cols': 'Colonnes cibles',
@@ -107,6 +136,7 @@ export default {
   'computed.col_name': 'Nom de la nouvelle colonne',
   'computed.edit_title': 'Modifier la colonne calculée',
   'computed.add_title': 'Nouvelle colonne calculée',
+  'computed.separators': 'Séparateurs',
 
   // Modal actions
   'modal.cancel': 'Annuler',
@@ -159,6 +189,17 @@ export default {
   'proc.status_done': 'Terminé',
   'proc.status_error': 'Erreur',
   'proc.status_skipped': 'Ignoré',
+
+  // Messages console (events backend, params interpolés via {nom})
+  'log.loading': 'Chargement de {file}…',
+  'log.parsed': '{rows} lignes × {cols} colonnes analysées',
+  'log.preset_steps': "Preset « {name} » — {count} étape(s)",
+  'log.run_stopped': "Exécution arrêtée par l'utilisateur.",
+  'log.skip_error': "Fichier ignoré suite à une erreur dans « {step} »",
+  'log.writing_output': 'Écriture du fichier de sortie → {path}',
+  'log.run_failed': "Échec de l'exécution après {elapsed}s : {error}",
+  'log.done': 'Terminé en {elapsed}s → {path}',
+  'log.console_cleared': 'Console effacée.',
 
   // Settings modal
   'settings.title': 'Paramètres',

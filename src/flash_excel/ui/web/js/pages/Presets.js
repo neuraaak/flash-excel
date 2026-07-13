@@ -1,6 +1,6 @@
-import { api }      from '../api.js';
-import FileLoader   from '../components/FileLoader.js';
-import ActionSteps  from '../components/ActionSteps.js';
+import { api } from '../api.js';
+import FileLoader from '../components/FileLoader.js';
+import ActionSteps from '../components/ActionSteps.js';
 
 const ACTION_ORDER = [
   'rename_columns', 'select_columns', 'cast_types', 'replace_values',
@@ -57,32 +57,100 @@ function purgePayloads(payloads, missingCols) {
   return p;
 }
 
+const IDENT_RE = /^[A-Za-z_]\w*$/;
+function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`); }
+
+/**
+ * Remplace toute référence à `oldName` par `newName` dans une expression
+ * add_computed_column (syntaxe `[Nom de colonne]` ou identifiant brut).
+ */
+function renameInExpression(expr, oldName, newName) {
+  if (!expr) return expr;
+  const newRef = IDENT_RE.test(newName) ? newName : `[${newName}]`;
+  let result = expr.split(`[${oldName}]`).join(newRef);
+  if (IDENT_RE.test(oldName)) {
+    result = result.replace(new RegExp(String.raw`\b${escapeRegExp(oldName)}\b`, 'g'), newRef);
+  }
+  return result;
+}
+
+/**
+ * Réécrit les références à `oldName` en `newName` dans tous les steps
+ * situés après `fromAction` dans le pipeline (propagation d'un renommage
+ * de colonne, qu'il vienne de rename_columns ou d'add_computed_column).
+ */
+function renameColumnDownstream(payloads, fromAction, oldName, newName) {
+  if (oldName === newName) return payloads;
+  const fromIdx = ACTION_ORDER.indexOf(fromAction);
+  const p = { ...payloads };
+  ACTION_ORDER.forEach((action, idx) => {
+    if (idx <= fromIdx) return;
+    const payload = p[action];
+    if (!payload) return;
+    switch (action) {
+      case 'select_columns':
+        if (payload.columns) p.select_columns = { ...payload, columns: payload.columns.map(c => c === oldName ? newName : c) };
+        break;
+      case 'cast_types':
+        if (payload.casts && oldName in payload.casts) {
+          const casts = { ...payload.casts };
+          casts[newName] = casts[oldName];
+          delete casts[oldName];
+          p.cast_types = { ...payload, casts };
+        }
+        break;
+      case 'replace_values':
+        if (payload.items) p.replace_values = { ...payload, items: payload.items.map(it => it.column === oldName ? { ...it, column: newName } : it) };
+        break;
+      case 'clean_text':
+        if (payload.items) p.clean_text = { ...payload, items: payload.items.map(it => ({ ...it, columns: it.columns.map(c => c === oldName ? newName : c) })) };
+        break;
+      case 'add_computed_column':
+        if (payload.items) p.add_computed_column = { ...payload, items: payload.items.map(it => ({ ...it, expression: renameInExpression(it.expression, oldName, newName) })) };
+        break;
+      case 'filter_rows':
+        if (payload.conditions) p.filter_rows = { ...payload, conditions: payload.conditions.map(c => c.column === oldName ? { ...c, column: newName } : c) };
+        break;
+      case 'deduplicate_rows':
+        if (payload.subset) p.deduplicate_rows = { ...payload, subset: payload.subset.map(c => c === oldName ? newName : c) };
+        break;
+      case 'sort_rows':
+        if (payload.by) p.sort_rows = { ...payload, by: payload.by.map(s => s.column === oldName ? { ...s, column: newName } : s) };
+        break;
+      case 'reorder_columns':
+        if (payload.columns) p.reorder_columns = { ...payload, columns: payload.columns.map(c => c === oldName ? newName : c) };
+        break;
+    }
+  });
+  return p;
+}
+
 export default {
   name: 'PresetsPage',
   components: { FileLoader, ActionSteps },
   inject: ['showToast', 'i18n'],
   data() {
     return {
-      presets:        [],
-      selectedPath:   null,
-      isNew:          false,
-      presetName:     '',
-      fileInfo:       null,
-      fileSchema:     {},
-      presetColumns:  [],
-      templateFile:   '',     // nom du fichier modèle mémorisé dans le preset
-      payloads:       {},
+      presets: [],
+      selectedPath: null,
+      isNew: false,
+      presetName: '',
+      fileInfo: null,
+      fileSchema: {},
+      presetColumns: [],
+      templateFile: '',     // nom du fichier modèle mémorisé dans le preset
+      payloads: {},
       // Mismatch modal state
-      mismatch:       null,   // null | { pending, missing, added }
+      mismatch: null,   // null | { pending, missing, added }
       // Delete confirmation modal
       showDeleteConfirm: false,
     };
   },
   computed: {
-    t()             { return this.i18n.t; },
-    hasSelection()  { return !!this.selectedPath || this.isNew; },
+    t() { return this.i18n.t; },
+    hasSelection() { return !!this.selectedPath || this.isNew; },
     sourceColumns() { return this.fileInfo?.columns || this.presetColumns; },
-    sourceSchema()  { return this.fileSchema; },
+    sourceSchema() { return this.fileSchema; },
   },
   async created() { await this.loadList(); },
   methods: {
@@ -165,7 +233,7 @@ export default {
         const savedCols = this.presetColumns;
         if (savedCols.length > 0) {
           const missing = savedCols.filter(c => !res.columns.includes(c));
-          const added   = res.columns.filter(c => !savedCols.includes(c));
+          const added = res.columns.filter(c => !savedCols.includes(c));
           if (missing.length > 0 || added.length > 0) {
             // Stocker en attente et afficher le modal
             this.mismatch = { pending: res, missing, added };
@@ -183,8 +251,8 @@ export default {
     },
 
     _applyFile(res) {
-      this.fileInfo     = res;
-      this.fileSchema   = res.schema || {};
+      this.fileInfo = res;
+      this.fileSchema = res.schema || {};
       this.templateFile = res.file_name || '';
     },
 
@@ -205,7 +273,31 @@ export default {
       this.mismatch = null;
     },
 
-    onPayloads(p) { this.payloads = p; },
+    onPayloads(newPayloads) {
+      let result = newPayloads;
+      const old = this.payloads;
+
+      // Renommage d'une colonne source (rename_columns) → propager aux steps suivantes
+      const oldMapping = old.rename_columns?.mapping || {};
+      const newMapping = newPayloads.rename_columns?.mapping || {};
+      for (const src of Object.keys(newMapping)) {
+        if (src in oldMapping && oldMapping[src] !== newMapping[src]) {
+          result = renameColumnDownstream(result, 'rename_columns', oldMapping[src], newMapping[src]);
+        }
+      }
+
+      // Renommage d'une colonne calculée (add_computed_column.target) → propager aux steps suivantes
+      const oldItems = old.add_computed_column?.items || [];
+      const newItems = newPayloads.add_computed_column?.items || [];
+      newItems.forEach((item, i) => {
+        const oldItem = oldItems[i];
+        if (oldItem?.target && item.target && oldItem.target !== item.target) {
+          result = renameColumnDownstream(result, 'add_computed_column', oldItem.target, item.target);
+        }
+      });
+
+      this.payloads = result;
+    },
   },
 
   template: `

@@ -26,7 +26,7 @@ export default {
     <div>
       <div class="row-between" style="margin-bottom:10px;">
         <span class="panel-sub" style="margin:0;">{{ t('table.keep_cols') }}</span>
-        <span style="font-size:var(--fs-xs);color:var(--text_secondary);">{{ selected.length }} of {{ effectiveColumns.length }} kept</span>
+        <span style="font-size:var(--fs-xs);color:var(--text_secondary);">{{ t('table.select_kept', { n: selected.length, total: effectiveColumns.length }) }}</span>
       </div>
       <div class="toggle-list">
         <div v-for="col in effectiveColumns" :key="col" class="toggle-row" :class="{ on: isOn(col) }">
@@ -37,7 +37,7 @@ export default {
           </label>
         </div>
       </div>
-      <div class="panel-hint">Columns toggled off are dropped from the output.</div>
+      <div class="panel-hint">{{ t('table.select_hint') }}</div>
     </div>
   `,
 };
