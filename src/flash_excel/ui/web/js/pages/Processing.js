@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 
-const LEVEL_LABEL = { info: 'INFO', ok: 'OK', step: '··', warn: 'WARN', err: 'ERROR' };
+const LEVEL_LABEL = { info: 'INFO', ok: 'OK', step: 'STEP', warn: 'WARN', err: 'ERROR' };
 
 export default {
   name: 'ProcessingPage',
@@ -55,9 +55,10 @@ export default {
     filteredLogs() {
       const f = this.consoleFilter;
       if (f === 'all') return this.logs;
+      if (f === 'step') return this.logs.filter(l => l.level === 'step');
       if (f === 'err') return this.logs.filter(l => l.level === 'err');
       if (f === 'warn') return this.logs.filter(l => l.level === 'warn' || l.level === 'err');
-      return this.logs.filter(l => ['info', 'ok', 'step'].includes(l.level));
+      return this.logs.filter(l => ['info', 'ok'].includes(l.level));
     },
   },
 
@@ -272,7 +273,7 @@ export default {
           {{ i18n.t('proc.console') }}
         </span>
         <div class="con-filters" @click.stop>
-          <span v-for="f in ['all','info','warn','err']" :key="f"
+          <span v-for="f in ['all','info','step','warn','err']" :key="f"
             class="con-chip" :class="{ active: consoleFilter === f }"
             @click="consoleFilter = f">{{ f[0].toUpperCase() + f.slice(1) }}</span>
         </div>
@@ -291,7 +292,7 @@ export default {
           class="log-line"
           :class="log.level === 'err' ? 'l-err' : log.level === 'warn' ? 'l-warn' : 'l-info'">
           <span class="log-time">{{ log.time }}</span>
-          <span class="log-lvl" :class="log.level">
+          <span class="log-lvl" :class="'lvl-' + log.level">
             {{ LEVEL_LABEL[log.level] ?? log.level.toUpperCase() }}
           </span>
           <span class="log-msg">{{ log.message }}</span>
