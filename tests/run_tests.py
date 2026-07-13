@@ -97,7 +97,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--type",
-        choices=["unit", "integration", "robustness", "all"],
+        choices=["unit", "integration", "robustness", "smoke", "all"],
         default="all",
         help="Test type to run, filtered by marker if not 'all' (default: all, "
         "since existing tests are not yet marker-categorized)",
