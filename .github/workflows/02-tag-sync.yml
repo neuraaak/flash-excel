@@ -13,13 +13,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ci:
+    name: Release gate (CI)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/01-ci.yml
+
   auto-tag:
     name: Create and Push Tags
+    needs: ci
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     outputs:
-      new_tag: ${{ steps.version.outputs.found }}
+      new_tag: ${{ steps.version.outputs.found == 'true' && github.ref == 'refs/heads/main' }}
       version: ${{ steps.version.outputs.version }}
       tag_name: ${{ steps.create_tags.outputs.tag_name }}
       latest_tag: ${{ steps.create_tags.outputs.latest_tag }}
@@ -30,9 +37,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
         with:
           fetch-depth: 0
+
+      - name: Preview guard (non-main ref)
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "🔎 Ref is ${{ github.ref }}, not main → preview mode (no tags will be created or pushed)"
+          fi
 
       - name: Extract version from pyproject.toml
         id: get_pyproject_version
@@ -118,7 +131,7 @@ jobs:
 
       - name: Create and push tags
         id: create_tags
-        if: steps.version.outputs.found == 'true'
+        if: steps.version.outputs.found == 'true' && github.ref == 'refs/heads/main'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           TAG_NAME="v$VERSION"
@@ -173,7 +186,7 @@ jobs:
 
       - name: Push tags to remote
         id: push_tags
-        if: steps.version.outputs.found == 'true'
+        if: steps.version.outputs.found == 'true' && github.ref == 'refs/heads/main'
         run: |
           TAG_NAME="${{ steps.create_tags.outputs.tag_name }}"
           LATEST_TAG="${{ steps.create_tags.outputs.latest_tag }}"
@@ -232,7 +245,6 @@ jobs:
     uses: ./.github/workflows/03-docs.yml
     permissions:
       contents: write
-    secrets: inherit
     with:
       version: ${{ needs.auto-tag.outputs.version }}
       tag: ${{ needs.auto-tag.outputs.tag_name }}
