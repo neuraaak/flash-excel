@@ -8,16 +8,18 @@ export default {
   },
   data() { return { rows: [] }; },
   watch: {
-    payload: { immediate: true, handler(v) {
-      if (this._emitting) return;
-      const rows = [];
-      for (const item of (v.items || [])) {
-        for (const [find, rep] of Object.entries(item.mapping || {})) {
-          rows.push({ col: item.column, find, rep: rep ?? '' });
+    payload: {
+      immediate: true, handler(v) {
+        if (this._emitting) return;
+        const rows = [];
+        for (const item of (v.items || [])) {
+          for (const [find, rep] of Object.entries(item.mapping || {})) {
+            rows.push({ col: item.column, find, rep: rep ?? '' });
+          }
         }
+        this.rows = rows;
       }
-      this.rows = rows;
-    }},
+    },
   },
   methods: {
     emit() {
@@ -33,19 +35,19 @@ export default {
       this.$emit('update:payload', items.length ? { action: 'replace_values', items } : {});
       this.$nextTick(() => { this._emitting = false; });
     },
-    addRow()     { this.rows.push({ col: this.columns[0] || '', find: '', rep: '' }); this.emit(); },
+    addRow() { this.rows.push({ col: this.columns[0] || '', find: '', rep: '' }); this.emit(); },
     removeRow(i) { this.rows.splice(i, 1); this.emit(); },
   },
   template: `
     <div>
       <div v-if="!rows.length" class="empty-state">
-        <span class="es-title">No replacements yet</span>
-        <span class="es-sub">Add a rule to find and replace values.</span>
+        <span class="es-title">{{ t('table.replace_empty_title') }}</span>
+        <span class="es-sub">{{ t('table.replace_empty_sub') }}</span>
       </div>
       <template v-else>
         <div class="panel-sub">{{ t('table.replacements') }}</div>
         <div class="rule-head" style="grid-template-columns:1fr 1fr 1fr var(--ctl-h);">
-          <span>{{ t('table.column') }}</span><span>Find</span><span>Replace with</span><span></span>
+          <span>{{ t('table.column') }}</span><span>{{ t('table.find') }}</span><span>{{ t('table.replace_with') }}</span><span></span>
         </div>
         <div class="rule-list">
           <div v-for="(r, i) in rows" :key="i" class="rule-row" style="grid-template-columns:1fr 1fr 1fr var(--ctl-h);">
@@ -55,8 +57,8 @@ export default {
                 <option v-for="c in columns" :key="c" :value="c">{{ c }}</option>
               </select>
             </span>
-            <input class="input" v-model="r.find" placeholder="Find" @input="emit" />
-            <input class="input" v-model="r.rep" placeholder="Replace with" @input="emit" />
+            <input class="input" v-model="r.find" :placeholder="t('table.find')" @input="emit" />
+            <input class="input" v-model="r.rep" :placeholder="t('table.replace_with')" @input="emit" />
             <button class="rule-del" @click="removeRow(i)" title="Remove">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </button>

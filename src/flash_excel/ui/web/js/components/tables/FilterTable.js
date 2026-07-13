@@ -1,13 +1,13 @@
-const OPS = [
-  { value: 'eq', label: '=' },          { value: 'neq', label: '≠' },
-  { value: 'gt', label: '>' },          { value: 'gte', label: '≥' },
-  { value: 'lt', label: '<' },          { value: 'lte', label: '≤' },
-  { value: 'contains', label: 'contains' },
-  { value: 'startswith', label: 'starts with' },
-  { value: 'endswith', label: 'ends with' },
-];
-
 import { toRaw } from '../../vendor/vue.esm-browser.prod.js';
+
+const OPS_BASE = [
+  { value: 'eq', label: '=' }, { value: 'neq', label: '≠' },
+  { value: 'gt', label: '>' }, { value: 'gte', label: '≥' },
+  { value: 'lt', label: '<' }, { value: 'lte', label: '≤' },
+  { value: 'contains', labelKey: 'table.op_contains' },
+  { value: 'startswith', labelKey: 'table.op_startswith' },
+  { value: 'endswith', labelKey: 'table.op_endswith' },
+];
 
 export default {
   name: 'FilterTable',
@@ -16,14 +16,17 @@ export default {
   inject: ['i18n'],
   computed: {
     t() { return this.i18n.t; },
+    ops() { return OPS_BASE.map(o => ({ value: o.value, label: o.labelKey ? this.t(o.labelKey) : o.label })); },
   },
-  data() { return { combine: 'AND', conditions: [], ops: OPS }; },
+  data() { return { combine: 'AND', conditions: [] }; },
   watch: {
-    payload: { immediate: true, handler(v) {
-      if (this._emitting) return;
-      this.combine = v.combine || 'AND';
-      this.conditions = (v.conditions?.length) ? structuredClone(toRaw(v.conditions)) : [];
-    }},
+    payload: {
+      immediate: true, handler(v) {
+        if (this._emitting) return;
+        this.combine = v.combine || 'AND';
+        this.conditions = (v.conditions?.length) ? structuredClone(toRaw(v.conditions)) : [];
+      }
+    },
   },
   methods: {
     emit() {
@@ -35,22 +38,22 @@ export default {
       });
       this.$nextTick(() => { this._emitting = false; });
     },
-    setCombine(v)  { this.combine = v; this.emit(); },
-    addRow()       { this.conditions.push({ column: this.columns[0] || '', operator: 'eq', value: '' }); this.emit(); },
-    removeRow(i)   { this.conditions.splice(i, 1); this.emit(); },
+    setCombine(v) { this.combine = v; this.emit(); },
+    addRow() { this.conditions.push({ column: this.columns[0] || '', operator: 'eq', value: '' }); this.emit(); },
+    removeRow(i) { this.conditions.splice(i, 1); this.emit(); },
   },
   template: `
     <div>
       <div class="row-between" style="margin-bottom:14px;">
-        <span class="field-label">Keep rows matching</span>
+        <span class="field-label">{{ t('table.filter_keep_matching') }}</span>
         <span class="seg">
-          <button :class="{ active: combine === 'AND' }" @click="setCombine('AND')">All conditions</button>
-          <button :class="{ active: combine === 'OR' }"  @click="setCombine('OR')">Any condition</button>
+          <button :class="{ active: combine === 'AND' }" @click="setCombine('AND')">{{ t('table.filter_all') }}</button>
+          <button :class="{ active: combine === 'OR' }"  @click="setCombine('OR')">{{ t('table.filter_any') }}</button>
         </span>
       </div>
       <div v-if="!conditions.length" class="empty-state">
-        <span class="es-title">No conditions yet</span>
-        <span class="es-sub">All rows are kept until you add a condition.</span>
+        <span class="es-title">{{ t('table.filter_empty_title') }}</span>
+        <span class="es-sub">{{ t('table.filter_empty_sub') }}</span>
       </div>
       <div v-else class="rule-list">
         <div v-for="(c, i) in conditions" :key="i" class="rule-row" style="grid-template-columns:1.2fr 1.2fr 1fr var(--ctl-h);">

@@ -4,8 +4,8 @@ export default {
   emits: ['update:payload'],
   inject: ['i18n'],
   computed: {
-    t()      { return this.i18n.t; },
-    keep()   { return this.payload.keep || 'first'; },
+    t() { return this.i18n.t; },
+    keep() { return this.payload.keep || 'first'; },
     subset() { return this.payload.subset || []; },
     effectiveColumns() {
       return this.columns.length ? this.columns : this.subset;
@@ -34,13 +34,13 @@ export default {
         </div>
       </div>
       <div class="field" style="margin-top:16px;">
-        <span class="field-label">When duplicates are found, keep</span>
+        <span class="field-label">{{ t('table.dedupe_keep_label') }}</span>
         <span class="seg">
-          <button :class="{ active: keep === 'first' }" @click="setKeep('first')">First row</button>
-          <button :class="{ active: keep === 'last' }"  @click="setKeep('last')">Last row</button>
+          <button :class="{ active: keep === 'first' }" @click="setKeep('first')">{{ t('table.dedupe_first') }}</button>
+          <button :class="{ active: keep === 'last' }"  @click="setKeep('last')">{{ t('table.dedupe_last') }}</button>
         </span>
       </div>
-      <div class="panel-hint">Rows are duplicates when all selected key columns match. Leave empty to use all columns.</div>
+      <div class="panel-hint">{{ t('table.dedupe_hint') }}</div>
     </div>
   `,
 };
