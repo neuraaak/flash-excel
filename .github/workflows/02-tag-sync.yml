@@ -232,22 +232,7 @@ jobs:
           echo "✅ Tags successfully created and pushed to remote!" >> $GITHUB_STEP_SUMMARY
 
   # ========================================
-  # TRIGGER OTHER WORKFLOWS (reusable workflow calls)
-  # ========================================
   # This app is not published to a package registry (installer/TUF release is
   # done locally via `build.py` — see tool.ezcompiler in pyproject.toml).
-  # Only the docs cascade applies here.
-
-  trigger-deploy-docs:
-    name: Trigger Deploy Docs
-    needs: auto-tag
-    if: needs.auto-tag.outputs.new_tag == 'true'
-    uses: ./.github/workflows/03-docs.yml
-    permissions:
-      contents: write
-    with:
-      version: ${{ needs.auto-tag.outputs.version }}
-      tag: ${{ needs.auto-tag.outputs.tag_name }}
-      package_name: ${{ needs.auto-tag.outputs.package_name }}
-      python_version: ${{ needs.auto-tag.outputs.python_version }}
-      is_prerelease: ${{ needs.auto-tag.outputs.is_prerelease }}
+  # No further cascade: tagging is the last CI-side step.
+  # ========================================
