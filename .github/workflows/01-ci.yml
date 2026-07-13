@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   install-deps:
+    permissions:
+      contents: read
     uses: ./.github/workflows/00-install-deps.yml
 
   quality:
