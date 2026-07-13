@@ -1,9 +1,11 @@
 name: CI
 
+# Runs on PRs, and as the release gate via workflow_call from 02-tag-sync
+# (no bare `push` trigger → one CI run per change, no double runs).
+
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_call:
   workflow_dispatch:
 
 permissions: {}
@@ -13,17 +15,21 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  install-deps:
+    uses: ./.github/workflows/00-install-deps.yml
+
   quality:
     name: Lint, Format, Type Check, Security
+    needs: [install-deps]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           python-version: "3.13"
@@ -32,19 +38,19 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Lint (ruff check)
-        run: uv run ruff check .
+        run: uv run --frozen ruff check .
 
       - name: Format check (ruff format)
-        run: uv run ruff format --check .
+        run: uv run --frozen ruff format --check .
 
       - name: Type check (ty)
-        run: uv run ty check
+        run: uv run --frozen ty check
 
       - name: Security scan (bandit)
-        run: uv run bandit -r src/ -ll
+        run: uv run --frozen bandit -r src/ -ll
 
       - name: Import contracts (import-linter)
-        run: uv run lint-imports
+        run: uv run --frozen lint-imports
 
   test:
     name: Test
@@ -58,10 +64,10 @@ jobs:
         python-version: ["3.13"]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
@@ -70,4 +76,4 @@ jobs:
         run: uv sync --frozen --extra test
 
       - name: Run tests
-        run: uv run pytest --cov=src/ --cov-report=xml -q
+        run: uv run --frozen pytest --cov=src/ --cov-report=xml -q
