@@ -1,44 +1,42 @@
 # flash-excel
 
-[![PyPI version](https://img.shields.io/pypi/v/flash-excel?style=flat&logo=pypi&logoColor=white)](https://pypi.org/project/flash-excel/)
-[![Python versions](https://img.shields.io/pypi/pyversions/flash-excel?style=flat&logo=python&logoColor=white)](https://pypi.org/project/flash-excel/)
-[![PyPI status](https://img.shields.io/pypi/status/flash-excel?style=flat&logo=pypi&logoColor=white)](https://pypi.org/project/flash-excel/)
-[![License](https://img.shields.io/badge/license-{{ badge_license }}?style=flat&logo=github&logoColor=white)](https://github.com/neuraaak/flash-excel/blob/main/LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/neuraaak/flash-excel/publish-pypi.yml?style=flat&label=publish&logo=githubactions&logoColor=white)](https://github.com/neuraaak/flash-excel/actions/workflows/publish-pypi.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/neuraaak/flash-excel/01-ci.yml?style=flat&label=ci&logo=githubactions&logoColor=white)](https://github.com/neuraaak/flash-excel/actions/workflows/01-ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat&logo=github&logoColor=white)](https://github.com/neuraaak/flash-excel/blob/main/LICENSE)
 [![uv](https://img.shields.io/badge/package%20manager-uv-DE5FE9?style=flat&logo=uv&logoColor=white)](https://github.com/astral-sh/uv)
 [![linter](https://img.shields.io/badge/linter-ruff-orange?style=flat&logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
 [![type checker](https://img.shields.io/badge/type%20checker-ty-orange?style=flat&logo=astral&logoColor=white)](https://github.com/astral-sh/ty)
+[![test runner](https://img.shields.io/badge/test%20runner-pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)](https://pytest.org)
 
-**flash-excel** — {{ project_description }}
+**flash-excel** — a Windows desktop utility to transform Excel/CSV files through declarative presets.
 
 ## 📦 Installation
 
-```bash
-pip install flash-excel
-```
+Download the latest installer from the [Releases page](https://github.com/neuraaak/flash-excel/releases/latest) (`flash-excel-<version>-setup.exe`) and run it. The app auto-updates itself afterwards.
 
-Or from source:
+To run from source instead:
 
 ```bash
 git clone https://github.com/neuraaak/flash-excel.git
-cd flash-excel && pip install .
+cd flash-excel
+uv sync
+uv run python main.py
 ```
 
 ## 🚀 Quick Start
 
-```python
-from {{ project_slug }} import MyClass
+1. Launch the app and pick a source Excel/CSV file.
+2. Choose an existing preset, or create a new one and add steps (rename, filter, cast types, add computed columns, …).
+3. Run the preset — the transformed file is written next to the source (or to a folder you configure).
 
-instance = MyClass()
-result = instance.run()
-print(result)
-```
+Presets are plain TOML files under `bin/presets/`, so they can also be authored or version-controlled by hand.
 
 ## 🎯 Key Features
 
-- **✅ Feature 1**: Description
-- **✅ Feature 2**: Description
-- **✅ Feature 3**: Description
+- **✅ Declarative presets**: chain rename, filter, cast, dedupe, sort and more steps in a reusable TOML file.
+- **✅ Computed columns**: 16 Excel-style functions (`MAJUSCULE`, `CONCATENER`, `SI`, `ARRONDI`, …) evaluated in a sandboxed expression engine.
+- **✅ Excel & CSV I/O**: reads/writes `.xlsx`, `.xls`, `.csv` via Polars + fastexcel/xlsxwriter.
+- **✅ Auto-update**: signed updates (TUF) delivered from a private repository, no manual reinstall.
+- **✅ Localized UI**: English and French.
 
 ## 🧪 Testing
 
@@ -47,10 +45,10 @@ print(result)
 uv sync
 
 # Run all tests
-pytest
+uv run pytest
 
 # With coverage
-pytest --cov={{ project_slug }} --cov-report=term-missing
+uv run pytest --cov=src/flash_excel --cov-report=term-missing
 ```
 
 ## 🛠️ Development Setup
@@ -63,7 +61,19 @@ uv sync
 uv run pre-commit install
 ```
 
-Source code uses a `src/` layout (`src/{{ project_slug }}`).
+Source code uses a `src/` layout (`src/flash_excel`).
+
+## 📦 Dependencies
+
+| Package      | Purpose                            |
+| ------------ | ---------------------------------- |
+| `pywebview`  | Desktop window (HTML/JS front-end) |
+| `polars`     | DataFrame engine                   |
+| `fastexcel`  | Fast Excel reading (Rust/calamine) |
+| `xlsxwriter` | Excel writing                      |
+| `pydantic`   | Preset & step validation           |
+| `pyyaml`     | App config / theme files           |
+| `ezplog`     | Logging                            |
 
 ## 📝 License
 
@@ -72,9 +82,9 @@ MIT License – See [LICENSE](LICENSE) file for details.
 ## 🔗 Links
 
 - **Repository**: [https://github.com/neuraaak/flash-excel](https://github.com/neuraaak/flash-excel)
-- **PyPI**: [https://pypi.org/project/flash-excel/](https://pypi.org/project/flash-excel/)
+- **Releases**: [https://github.com/neuraaak/flash-excel/releases](https://github.com/neuraaak/flash-excel/releases)
 - **Issues**: [GitHub Issues](https://github.com/neuraaak/flash-excel/issues)
 
 ---
 
-**flash-excel** — {{ project_description }}
+**flash-excel** – Declarative Excel/CSV transformations, one preset at a time.
