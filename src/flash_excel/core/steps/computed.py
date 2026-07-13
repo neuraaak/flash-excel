@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import ast
 import datetime
+import re
 
 import polars as pl
 
@@ -275,6 +276,36 @@ class _SafeVisitor(ast.NodeVisitor):
 
 
 # ///////////////////////////////////////////////////////////////
+# BRACKET SYNTAX — [Column Name] for non-identifier column names
+# ///////////////////////////////////////////////////////////////
+
+_BRACKET_RE = re.compile(r"\[([^\[\]]+)\]")
+
+
+def _desugar_bracket_columns(
+    expression: str, columns: list[str]
+) -> tuple[str, dict[str, str]]:
+    """Replace ``[Column Name]`` references with safe placeholder identifiers.
+
+    Column names containing spaces, leading digits, or symbols (°, €, -, …)
+    aren't valid Python identifiers and can't be referenced bare in the
+    expression AST. The ``[Column Name]`` syntax lets users quote them
+    explicitly. Only brackets whose content matches a known column name are
+    replaced, so plain list literals (e.g. ``[1, 2, 3]``) are left untouched.
+    """
+    aliases: dict[str, str] = {}
+
+    def _replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        if name not in columns:
+            return match.group(0)
+        alias = aliases.setdefault(name, f"_col_{len(aliases)}")
+        return alias
+
+    return _BRACKET_RE.sub(_replace, expression), aliases
+
+
+# ///////////////////////////////////////////////////////////////
 # STEP FUNCTION
 # ///////////////////////////////////////////////////////////////
 
@@ -289,15 +320,20 @@ def add_computed_column(
 
     Available functions: CONCATENER, MAJUSCULE, MINUSCULE, GAUCHE, DROITE,
     NBCAR, SUPPRESPACE, ARRONDI, ABS, MULTIPLIER, AJOUTER, ANNEE, MOIS,
-    JOUR, AUJOURD_HUI, SI. Column names are accessible directly by name.
+    JOUR, AUJOURD_HUI, SI. Column names are accessible directly by name, or
+    wrapped in brackets (``[Column Name]``) when they aren't valid Python
+    identifiers (spaces, leading digits, symbols…).
 
     Example:
         >>> df = pl.DataFrame({"prenom": ["Alice"], "nom": ["Smith"]})
         >>> add_computed_column(df, "complet", 'MAJUSCULE(CONCATENER(prenom, " ", nom))')
         shape: (1, 3)
     """
+    expression, bracket_aliases = _desugar_bracket_columns(expression, df.columns)
     namespace = _make_namespace(df)
-    allowed_names = _STATIC_ALLOWED | set(df.columns)
+    for col_name, alias in bracket_aliases.items():
+        namespace[alias] = pl.col(col_name)
+    allowed_names = _STATIC_ALLOWED | set(df.columns) | set(bracket_aliases.values())
 
     try:
         parsed = ast.parse(expression, mode="eval")
