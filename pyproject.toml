@@ -348,7 +348,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
-    "--cov-fail-under=30",
+    "--cov-fail-under=70",
     "--tb=short",
     "--color=yes",
     "--durations=10",
@@ -356,7 +356,7 @@ addopts = [
 ]
 console_output_style = "progress"
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -366,6 +366,7 @@ markers = [
     "robustness: marks tests as robustness tests",
     "unit: marks tests as unit tests (default)",
     "cli: marks tests related to CLI",
+    "smoke: marks tests as smoke tests (app/entrypoint startup checks)",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
@@ -415,7 +416,7 @@ exclude_lines = [
 ]
 show_missing = true
 precision = 2
-fail_under = 60
+fail_under = 70
 
 [tool.coverage.html]
 directory = "htmlcov"

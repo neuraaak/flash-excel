@@ -276,3 +276,4 @@ user_settings/
 bin/presets
 .remember
 docs/superpowers
+.superpowers/
