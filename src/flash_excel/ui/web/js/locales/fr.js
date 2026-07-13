@@ -127,6 +127,7 @@ export default {
   'computed.col_name': 'Nom de la nouvelle colonne',
   'computed.edit_title': 'Modifier la colonne calculée',
   'computed.add_title': 'Nouvelle colonne calculée',
+  'computed.separators': 'Séparateurs',
 
   // Modal actions
   'modal.cancel': 'Annuler',

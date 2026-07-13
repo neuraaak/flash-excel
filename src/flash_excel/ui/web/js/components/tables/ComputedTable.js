@@ -83,6 +83,8 @@ const FUNCTIONS = [
 
 const FN_CATS = ["Texte", "Math", "Date", "Logique"];
 
+const SEPARATORS = ['_', '-', '/', '.', ' '];
+
 export default {
   name: 'ComputedTable',
   props: { columns: { type: Array, default: () => [] }, payload: { type: Object, default: () => ({}) } },
@@ -100,6 +102,7 @@ export default {
       popoverStyle: {},
       functions: FUNCTIONS,
       fnCats: FN_CATS,
+      separators: SEPARATORS,
     };
   },
 
@@ -128,6 +131,10 @@ export default {
     insertCol(col) {
       const ref = /^[A-Za-z_]\w*$/.test(col) ? col : `[${col}]`;
       this.draft.expression += (this.draft.expression.trim() ? ' ' : '') + ref;
+      this.focusExpr();
+    },
+    insertSep(sep) {
+      this.draft.expression += (this.draft.expression.trim() ? ' ' : '') + `"${sep}"`;
       this.focusExpr();
     },
     insertFn(fn) {
@@ -180,6 +187,9 @@ export default {
         <div v-for="(item, idx) in items" :key="idx" class="compute-card">
           <div class="cc-head">
             <span class="input" style="cursor:pointer;display:flex;align-items:center;" @click="openEdit(idx)">{{ item.target || '…' }}</span>
+            <button class="mini-btn" @click="openEdit(idx)" :title="t('computed.edit_title')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
             <button class="mini-btn danger" @click="deleteItem(idx)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             </button>
@@ -230,6 +240,13 @@ export default {
                   <span class="field-label">Colonnes</span>
                   <div class="chips">
                     <span v-for="col in columns" :key="col" class="chip" :title="col" @click="insertCol(col)">{{ col }}</span>
+                  </div>
+                </div>
+
+                <div class="field" style="gap:6px">
+                  <span class="field-label">{{ t('computed.separators') }}</span>
+                  <div class="chips">
+                    <span v-for="sep in separators" :key="sep" class="chip" style="font-family:var(--mono)" @click="insertSep(sep)">{{ sep === ' ' ? '⎵' : sep }}</span>
                   </div>
                 </div>
 

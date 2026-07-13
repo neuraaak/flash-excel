@@ -127,6 +127,7 @@ export default {
   'computed.col_name': 'New column name',
   'computed.edit_title': 'Edit computed column',
   'computed.add_title': 'New computed column',
+  'computed.separators': 'Separators',
 
   // Modal actions
   'modal.cancel': 'Cancel',
