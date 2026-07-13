@@ -14,7 +14,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flash-excel"
-version = "1.2.1"
+version = "1.2.2"
 description = "Utilitaire desktop pour transformer des fichiers Excel/CSV via des presets déclaratifs."
 readme = "README.md"
 license = { text = "MIT" }
