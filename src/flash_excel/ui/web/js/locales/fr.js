@@ -160,6 +160,17 @@ export default {
   'proc.status_error': 'Erreur',
   'proc.status_skipped': 'Ignoré',
 
+  // Messages console (events backend, params interpolés via {nom})
+  'log.loading': 'Chargement de {file}…',
+  'log.parsed': '{rows} lignes × {cols} colonnes analysées',
+  'log.preset_steps': "Preset « {name} » — {count} étape(s)",
+  'log.run_stopped': "Exécution arrêtée par l'utilisateur.",
+  'log.skip_error': "Fichier ignoré suite à une erreur dans « {step} »",
+  'log.writing_output': 'Écriture du fichier de sortie → {path}',
+  'log.run_failed': "Échec de l'exécution après {elapsed}s : {error}",
+  'log.done': 'Terminé en {elapsed}s → {path}',
+  'log.console_cleared': 'Console effacée.',
+
   // Settings modal
   'settings.title': 'Paramètres',
   'settings.appearance': 'Apparence',

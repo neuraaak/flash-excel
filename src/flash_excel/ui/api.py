@@ -154,6 +154,7 @@ class FlashExcelAPI:
             _update_log("apply: installer lancé (SystemExit) → force quit")
             threading.Thread(target=_force_quit, daemon=True).start()
             return _ok({"applied": True})
+            raise
         except Exception as exc:
             _update_log(f"apply FAILED: {exc!r}\n{traceback.format_exc()}")
             return _err(str(exc))
@@ -501,13 +502,17 @@ class FlashExcelAPI:
 
         try:
             src = Path(file_path)
-            self._push("log", {"level": "info", "message": f"Loading {src.name}…"})
+            self._push(
+                "log",
+                {"level": "info", "key": "log.loading", "params": {"file": src.name}},
+            )
             df = read_csv(src) if src.suffix.lower() == ".csv" else read_excel(src)
             self._push(
                 "log",
                 {
                     "level": "info",
-                    "message": f"Parsed {len(df)} rows × {len(df.columns)} columns",
+                    "key": "log.parsed",
+                    "params": {"rows": len(df), "cols": len(df.columns)},
                 },
             )
 
@@ -518,15 +523,14 @@ class FlashExcelAPI:
                 "log",
                 {
                     "level": "info",
-                    "message": f"Preset '{preset.meta.name}' — {total} step(s)",
+                    "key": "log.preset_steps",
+                    "params": {"name": preset.meta.name, "count": total},
                 },
             )
 
             for idx, step in enumerate(steps):
                 if self._stop_event.is_set():
-                    self._push(
-                        "log", {"level": "warn", "message": "Run stopped by user."}
-                    )
+                    self._push("log", {"level": "warn", "key": "log.run_stopped"})
                     return
 
                 step_name = step.action
@@ -563,7 +567,8 @@ class FlashExcelAPI:
                             "log",
                             {
                                 "level": "warn",
-                                "message": f"Skipping file due to error in '{step_name}'",
+                                "key": "log.skip_error",
+                                "params": {"step": step_name},
                             },
                         )
                         return
@@ -573,9 +578,15 @@ class FlashExcelAPI:
                 file_path, output_config, return_fmt=True
             )
             self._push(
-                "log", {"level": "info", "message": f"Writing output → {out_path}"}
+                "log",
+                {
+                    "level": "info",
+                    "key": "log.writing_output",
+                    "params": {"path": out_path},
+                },
             )
-            write_dataframe(df, Path(out_path), fmt)
+            locale = load_app_config().get("locale", "en")
+            write_dataframe(df, Path(out_path), fmt, locale=locale)
 
             elapsed = round(time.monotonic() - t_start, 2)
             self._push(
@@ -595,7 +606,11 @@ class FlashExcelAPI:
             )
             self._push(
                 "log",
-                {"level": "err", "message": f"Run failed after {elapsed}s: {exc}"},
+                {
+                    "level": "err",
+                    "key": "log.run_failed",
+                    "params": {"elapsed": elapsed, "error": str(exc)},
+                },
             )
 
     @staticmethod

@@ -160,6 +160,17 @@ export default {
   'proc.status_error': 'Error',
   'proc.status_skipped': 'Skipped',
 
+  // Console log messages (backend events, params interpolated via {name})
+  'log.loading': 'Loading {file}…',
+  'log.parsed': 'Parsed {rows} rows × {cols} columns',
+  'log.preset_steps': "Preset '{name}' — {count} step(s)",
+  'log.run_stopped': 'Run stopped by user.',
+  'log.skip_error': "Skipping file due to error in '{step}'",
+  'log.writing_output': 'Writing output → {path}',
+  'log.run_failed': 'Run failed after {elapsed}s: {error}',
+  'log.done': 'Done in {elapsed}s → {path}',
+  'log.console_cleared': 'Console cleared.',
+
   // Settings modal
   'settings.title': 'Settings',
   'settings.appearance': 'Appearance',
