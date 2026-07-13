@@ -154,7 +154,6 @@ class FlashExcelAPI:
             _update_log("apply: installer lancé (SystemExit) → force quit")
             threading.Thread(target=_force_quit, daemon=True).start()
             return _ok({"applied": True})
-            raise
         except Exception as exc:
             _update_log(f"apply FAILED: {exc!r}\n{traceback.format_exc()}")
             return _err(str(exc))
