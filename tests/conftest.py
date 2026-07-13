@@ -21,6 +21,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 # Third-party imports
+import polars as pl
 import pytest
 
 # ///////////////////////////////////////////////////////////////
@@ -72,3 +73,21 @@ def temp_file(temp_dir: Path) -> Path:
         ...     assert temp_file.exists()
     """
     return temp_dir / "temp_file"
+
+
+@pytest.fixture
+def sample_df() -> pl.DataFrame:
+    """
+    Provide a small representative DataFrame for step tests.
+
+    Columns:
+        id (int), nom (str), montant (float), statut (str)
+    """
+    return pl.DataFrame(
+        {
+            "id": [1, 2, 3],
+            "nom": ["Alice", "Bob", "Alice"],
+            "montant": [100.0, 200.0, 100.0],
+            "statut": ["Actif", "Inactif", "Actif"],
+        }
+    )
