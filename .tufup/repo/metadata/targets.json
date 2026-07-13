@@ -2,12 +2,12 @@
  "signatures": [
   {
    "keyid": "1ad86f04aeab27b0fa72ac0e9744efc449cd2cca56841e7bd531c5a992204eea",
-   "sig": "d93eeebdebf4917d44c73caa820b5d59b27cffc048472ad170a115afd67b542bb3495c723770a41177a5a609d182efe3cd63c1edc7ba62f79471ead1fb98a506"
+   "sig": "a73d2872766c4356a6201ba3fa438c36b86f23e502ad0a76f20fd01e4d2fff3c3674bfbc9343da707f618821b00e81314057cb9a9d59b0942c1291c33e76fd05"
   }
  ],
  "signed": {
   "_type": "targets",
-  "expires": "2027-07-12T23:03:25Z",
+  "expires": "2027-07-13T02:30:29Z",
   "spec_version": "1.0.31",
   "targets": {
    "flash-excel-1.2.0.tar.gz": {
@@ -47,8 +47,34 @@
      "sha256": "965f956b4aa7ecb63b0bd0a811cb2a31146893108d9e49e7aa153777138bf512"
     },
     "length": 93684377
+   },
+   "flash-excel-1.2.2.patch": {
+    "custom": {
+     "tufup": {
+      "tar_hash": "67f500389670982e2b073e63a2850f216d1921d46b7146f26a82f87935baa7da",
+      "tar_hash_algorithm": "sha256",
+      "tar_size": 260853760
+     },
+     "user": null
+    },
+    "hashes": {
+     "sha256": "fc2fec92566f8c9a0ee5c854256ea1c99df2533bb131a3e13cadaa6ff722bd2e"
+    },
+    "length": 34089
+   },
+   "flash-excel-1.2.2.tar.gz": {
+    "custom": {
+     "tufup": {
+      "required": false
+     },
+     "user": null
+    },
+    "hashes": {
+     "sha256": "ddc8b5283b1bebd666dea497573cb9d78f2f388e097709662545fb2603892c80"
+    },
+    "length": 93685357
    }
   },
-  "version": 3
+  "version": 4
  }
 }

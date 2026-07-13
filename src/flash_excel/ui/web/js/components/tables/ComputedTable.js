@@ -91,21 +91,21 @@ export default {
 
   data() {
     return {
-      showModal:   false,
-      editIndex:   null,
-      draft:       { target: '', expression: '' },
-      fnCat:       'Texte',
-      hintText:    '',
-      hoveredFn:   null,
+      showModal: false,
+      editIndex: null,
+      draft: { target: '', expression: '' },
+      fnCat: 'Texte',
+      hintText: '',
+      hoveredFn: null,
       popoverStyle: {},
-      functions:   FUNCTIONS,
-      fnCats:      FN_CATS,
+      functions: FUNCTIONS,
+      fnCats: FN_CATS,
     };
   },
 
   computed: {
-    t()          { return this.i18n.t; },
-    items()      { return this.payload.items || []; },
+    t() { return this.i18n.t; },
+    items() { return this.payload.items || []; },
     visibleFns() { return this.functions.filter(f => f.cat === this.fnCat); },
   },
 
@@ -126,7 +126,8 @@ export default {
     closeModal() { this.showModal = false; this.hoveredFn = null; },
 
     insertCol(col) {
-      this.draft.expression += (this.draft.expression.trim() ? ' ' : '') + col;
+      const ref = /^[A-Za-z_]\w*$/.test(col) ? col : `[${col}]`;
+      this.draft.expression += (this.draft.expression.trim() ? ' ' : '') + ref;
       this.focusExpr();
     },
     insertFn(fn) {
@@ -146,7 +147,7 @@ export default {
       const rect = evt.currentTarget.getBoundingClientRect();
       // Position popover to the left of the index panel
       this.popoverStyle = {
-        top:   rect.top + 'px',
+        top: rect.top + 'px',
         right: (window.innerWidth - rect.left + 8) + 'px',
       };
     },
