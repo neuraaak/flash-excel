@@ -120,7 +120,7 @@ PyPI = "https://pypi.org/project/flash-excel/"
 main_file = "main.py"
 output_folder = "dist/Flash-Excel"   # TEST: sortie dans .tmp/ (repasser en dist/Flash-Excel pour la prod)
 icon = "bin/assets/images/logo.ico"
-include_files = { files = [], folders = ["bin"] }
+include_files = { files = [], folders = ["bin/assets", "bin/config", "bin/tufup"] }  # bin/presets exclu (données locales utilisateur, gitignored)
 packages = []
 includes = []
 excludes = ["tkinter", "unittest", "xmlrpc", "pydoc", "doctest"]
@@ -140,7 +140,7 @@ optimize = true
 strip = false
 onefile = false                   # Mode dossier (onedir) — pas de .exe unique
 contents-directory = "."          # Désactive _internal: tout à plat dans dist/
-collect-all = "webview"           # Collecte tous les assets/hooks de pywebview
+collect-all = ["webview", "fastexcel"]  # Collecte tous les assets/hooks de pywebview + le backend Rust fastexcel
 collect-data = "flash_excel"      # Collecte les données du package (web/, assets...)
 exclude-module = "webview.platforms.android"  # Pas de module Android sous Windows
 
